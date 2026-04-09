@@ -2,10 +2,22 @@ import { motion } from "framer-motion";
 import { TrendingUp, ArrowDownRight, DollarSign, Gift, Sparkles } from "lucide-react";
 import MetalCard from "@/components/MetalCard";
 import QuickAction from "@/components/QuickAction";
+import { useMetalPrices } from "@/hooks/useMetalPrices";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  const prices = useMetalPrices();
+  const { user } = useAuth();
+
+  const gold24kRate = parseFloat(prices.gold24k) || 0;
+  const silverRate = parseFloat(prices.silver) || 0;
+  const goldGrams = 2.45;
+  const silverGrams = 120;
+  const goldValue = (goldGrams * gold24kRate).toLocaleString("en-IN");
+  const silverValue = (silverGrams * silverRate).toLocaleString("en-IN");
+  const totalPortfolio = (goldGrams * gold24kRate + silverGrams * silverRate).toLocaleString("en-IN");
 
   return (
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
