@@ -1,4 +1,4 @@
-import { Home, TrendingUp, Repeat, Gift, History } from "lucide-react";
+import { Home, TrendingUp, Repeat, Gift, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -7,7 +7,7 @@ const tabs = [
   { icon: TrendingUp, label: "Invest", path: "/invest" },
   { icon: Repeat, label: "Redeem", path: "/redeem" },
   { icon: Gift, label: "Gift", path: "/gift" },
-  { icon: History, label: "History", path: "/transactions" },
+  { icon: User, label: "Profile", path: "/profile" },
 ];
 
 const BottomNav = () => {
