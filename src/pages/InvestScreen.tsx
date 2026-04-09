@@ -2,17 +2,17 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useMetalPrices } from "@/hooks/useMetalPrices";
 
-const GOLD_RATE = 6216; // per gram
-const SILVER_RATE = 78; // per gram
 const GST_RATE = 0.03;
 
 const InvestScreen = () => {
   const [metal, setMetal] = useState<"gold" | "silver">("gold");
   const [amount, setAmount] = useState("");
   const navigate = useNavigate();
+  const prices = useMetalPrices();
 
-  const rate = metal === "gold" ? GOLD_RATE : SILVER_RATE;
+  const rate = metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver);
   const numAmount = parseFloat(amount) || 0;
   const gst = numAmount * GST_RATE;
   const investable = numAmount - gst;
