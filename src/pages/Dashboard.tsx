@@ -40,7 +40,7 @@ const Dashboard = () => {
       >
         <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Portfolio</p>
         <p className="text-4xl font-display font-bold text-foreground mt-2">
-          ₹24,580
+          ₹{totalPortfolio}
         </p>
         <div className="flex items-center justify-center gap-1 mt-2 text-emerald-400 text-sm">
           <TrendingUp size={14} />
@@ -63,8 +63,8 @@ const Dashboard = () => {
 
       {/* Metal Cards */}
       <div className="grid grid-cols-2 gap-3 mt-6">
-        <MetalCard type="gold" grams="2.45" value="15,230" delay={0.35} />
-        <MetalCard type="silver" grams="120" value="9,350" delay={0.45} />
+        <MetalCard type="gold" grams={String(goldGrams)} value={goldValue} delay={0.35} />
+        <MetalCard type="silver" grams={String(silverGrams)} value={silverValue} delay={0.45} />
       </div>
 
       {/* Quick Actions */}
