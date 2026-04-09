@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { WalletProvider } from "@/contexts/WalletContext";
 import Index from "./pages/Index";
 import InvestScreen from "./pages/InvestScreen";
 import RedeemScreen from "./pages/RedeemScreen";
@@ -14,6 +15,7 @@ import TransactionsScreen from "./pages/TransactionsScreen";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProfilePage from "./pages/ProfilePage";
+import WalletPage from "./pages/WalletPage";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 
@@ -47,6 +49,7 @@ const AppRoutes = () => {
           <Route path="/gift" element={<ProtectedRoute><GiftScreen /></ProtectedRoute>} />
           <Route path="/transactions" element={<ProtectedRoute><TransactionsScreen /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -63,7 +66,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <WalletProvider>
+            <AppRoutes />
+          </WalletProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
