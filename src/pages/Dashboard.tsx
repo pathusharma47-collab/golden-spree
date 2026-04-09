@@ -27,7 +27,7 @@ const Dashboard = () => {
           {greeting},
         </p>
         <h1 className="font-display text-2xl font-bold text-foreground mt-0.5">
-          Arjun
+          {user?.name || "Arjun"}
         </h1>
       </motion.div>
 
