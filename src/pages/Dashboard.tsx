@@ -83,9 +83,9 @@ const Dashboard = () => {
             <p className="text-[9px] text-primary-foreground/60 mt-0.5">/gram</p>
           </div>
           <div className="silver-gradient rounded-xl p-3 text-center">
-            <p className="text-[10px] text-secondary-foreground/70 font-semibold uppercase">Silver</p>
-            <p className="text-sm font-bold text-secondary-foreground mt-1">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
-            <p className="text-[9px] text-secondary-foreground/60 mt-0.5">/gram</p>
+            <p className="text-[10px] text-primary-foreground/70 font-semibold uppercase">Silver</p>
+            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
+            <p className="text-[9px] text-primary-foreground/60 mt-0.5">/gram</p>
           </div>
         </div>
         <p className="text-[9px] text-muted-foreground text-center mt-3 opacity-60">
