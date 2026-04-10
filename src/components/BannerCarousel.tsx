@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Banner {
   id: string;
-  imageData: string;
-  redirectUrl: string;
+  image_data: string;
+  redirect_url: string;
   title: string;
 }
 
@@ -15,13 +16,35 @@ const BannerCarousel = () => {
   const [direction, setDirection] = useState(1);
 
   useEffect(() => {
-    const load = () => {
-      const stored = localStorage.getItem("admin_banners");
-      setBanners(stored ? JSON.parse(stored) : []);
+    const fetchBanners = async () => {
+      const { data, error } = await supabase
+        .from("banners")
+        .select("id, image_data, redirect_url, title")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (!error && data) {
+        setBanners(data);
+      }
     };
-    load();
-    const interval = setInterval(load, 3000);
-    return () => clearInterval(interval);
+
+    fetchBanners();
+
+    // Subscribe to realtime changes so banners update live
+    const channel = supabase
+      .channel("banners-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "banners" },
+        () => {
+          fetchBanners();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -52,7 +75,7 @@ const BannerCarousel = () => {
   return (
     <div className="mt-4 max-w-2xl mx-auto">
       <a
-        href={banners[current]?.redirectUrl || "https://maheshwarialankar.com"}
+        href={banners[current]?.redirect_url || "https://maheshwarialankar.com"}
         target="_blank"
         rel="noopener noreferrer"
         className="block"
@@ -61,7 +84,7 @@ const BannerCarousel = () => {
           <AnimatePresence mode="wait" custom={direction}>
             <motion.img
               key={banners[current]?.id}
-              src={banners[current]?.imageData}
+              src={banners[current]?.image_data}
               alt={banners[current]?.title}
               custom={direction}
               initial={{ opacity: 0, x: direction * 40 }}
