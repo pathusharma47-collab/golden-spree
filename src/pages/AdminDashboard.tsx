@@ -11,7 +11,10 @@ import {
   CheckCircle,
   IndianRupee,
   Upload,
+  Loader2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PriceData {
   gold24k: string;
@@ -22,8 +25,8 @@ interface PriceData {
 
 interface Banner {
   id: string;
-  imageData: string; // base64 data URL
-  redirectUrl: string;
+  image_data: string;
+  redirect_url: string;
   title: string;
 }
 
@@ -44,15 +47,35 @@ const AdminDashboard = () => {
     return stored ? JSON.parse(stored) : DEFAULT_PRICES;
   });
 
-  const [banners, setBanners] = useState<Banner[]>(() => {
-    const stored = localStorage.getItem("admin_banners");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loadingBanners, setLoadingBanners] = useState(true);
+  const [savingBanner, setSavingBanner] = useState(false);
 
   const [priceSaved, setPriceSaved] = useState(false);
   const [bannerTitle, setBannerTitle] = useState("");
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
+
+  // Load banners from Supabase
+  useEffect(() => {
+    const fetchBanners = async () => {
+      setLoadingBanners(true);
+      const { data, error } = await supabase
+        .from("banners")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching banners:", error);
+        toast.error("Failed to load banners");
+      } else {
+        setBanners(data || []);
+      }
+      setLoadingBanners(false);
+    };
+    fetchBanners();
+  }, []);
 
   const savePrices = () => {
     const updated = { ...prices, updatedAt: new Date().toISOString() };
@@ -66,7 +89,7 @@ const AdminDashboard = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("Image must be under 2MB");
+      toast.error("Image must be under 2MB");
       return;
     }
     const reader = new FileReader();
@@ -74,26 +97,44 @@ const AdminDashboard = () => {
     reader.readAsDataURL(file);
   };
 
-  const addBanner = () => {
+  const addBanner = async () => {
     if (!bannerTitle || !bannerPreview) return;
-    const banner: Banner = {
-      id: Date.now().toString(),
-      imageData: bannerPreview,
-      redirectUrl: "https://maheshwarialankar.com",
-      title: bannerTitle,
-    };
-    const updated = [...banners, banner];
-    setBanners(updated);
-    localStorage.setItem("admin_banners", JSON.stringify(updated));
-    setBannerTitle("");
-    setBannerPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    setSavingBanner(true);
+
+    const { data, error } = await supabase
+      .from("banners")
+      .insert({
+        title: bannerTitle,
+        image_data: bannerPreview,
+        redirect_url: "https://maheshwarialankar.com",
+        sort_order: banners.length,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error adding banner:", error);
+      toast.error("Failed to add banner");
+    } else if (data) {
+      setBanners([...banners, data]);
+      toast.success("Banner added successfully!");
+      setBannerTitle("");
+      setBannerPreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+    setSavingBanner(false);
   };
 
-  const removeBanner = (id: string) => {
-    const updated = banners.filter((b) => b.id !== id);
-    setBanners(updated);
-    localStorage.setItem("admin_banners", JSON.stringify(updated));
+  const removeBanner = async (id: string) => {
+    const { error } = await supabase.from("banners").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error removing banner:", error);
+      toast.error("Failed to remove banner");
+    } else {
+      setBanners(banners.filter((b) => b.id !== id));
+      toast.success("Banner removed");
+    }
   };
 
   return (
@@ -259,15 +300,19 @@ const AdminDashboard = () => {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={addBanner}
-                disabled={!bannerTitle || !bannerPreview}
+                disabled={!bannerTitle || !bannerPreview || savingBanner}
                 className="w-full h-12 rounded-xl gold-gradient text-primary-foreground font-semibold flex items-center justify-center gap-2 gold-glow disabled:opacity-50"
               >
-                <Image size={18} />
-                Add Banner
+                {savingBanner ? <Loader2 size={18} className="animate-spin" /> : <Image size={18} />}
+                {savingBanner ? "Saving..." : "Add Banner"}
               </motion.button>
             </div>
 
-            {banners.length > 0 && (
+            {loadingBanners ? (
+              <div className="text-center py-8">
+                <Loader2 size={24} className="animate-spin text-muted-foreground mx-auto" />
+              </div>
+            ) : banners.length > 0 ? (
               <div className="space-y-3">
                 <h3 className="text-xs font-medium text-muted-foreground px-1">
                   Active Banners ({banners.length})
@@ -282,7 +327,7 @@ const AdminDashboard = () => {
                     className="glass-card p-3 flex items-center gap-3"
                   >
                     <img
-                      src={banner.imageData}
+                      src={banner.image_data}
                       alt={banner.title}
                       className="w-16 h-12 rounded-lg object-cover bg-muted"
                     />
@@ -305,9 +350,7 @@ const AdminDashboard = () => {
                   </motion.div>
                 ))}
               </div>
-            )}
-
-            {banners.length === 0 && (
+            ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 No banners added yet
               </div>
