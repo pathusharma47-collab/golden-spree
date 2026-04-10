@@ -12,6 +12,8 @@ import {
   IndianRupee,
   Upload,
   Loader2,
+  Pencil,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
