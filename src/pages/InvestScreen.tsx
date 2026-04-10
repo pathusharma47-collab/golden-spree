@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Wallet, Trophy, Calendar, Sparkles } from "lucide-react";
+import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useWallet } from "@/contexts/WalletContext";
+import { useSIP, SIP_PLANS, SIPPlan } from "@/contexts/SIPContext";
 import { toast } from "sonner";
 
 const GST_RATE = 0.03;
@@ -13,11 +14,13 @@ type Tab = "gold" | "silver" | "sip";
 const InvestScreen = () => {
   const [tab, setTab] = useState<Tab>("gold");
   const [amount, setAmount] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<SIPPlan | null>(null);
   const navigate = useNavigate();
   const prices = useMetalPrices();
   const { balance, deductForInvestment } = useWallet();
+  const { activeSIPs, enrollInSIP } = useSIP();
 
-  const metal = tab === "sip" ? "silver" : tab;
+  const metal = tab === "sip" ? (selectedPlan?.metal || "gold") : tab;
   const rate = metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver);
   const numAmount = parseFloat(amount) || 0;
   const gst = numAmount * GST_RATE;
@@ -39,10 +42,30 @@ const InvestScreen = () => {
     }
   };
 
-  // SIP data
-  const completed = 6;
-  const total = 12;
-  const progress = (completed / total) * 100;
+  const handleEnrollSIP = (plan: SIPPlan) => {
+    const alreadyEnrolled = activeSIPs.some(s => s.planId === plan.id);
+    if (alreadyEnrolled) {
+      toast.error("Already enrolled", { description: `You're already enrolled in ${plan.name}` });
+      return;
+    }
+    if (plan.monthlyAmount > balance) {
+      toast.error("Insufficient balance", { description: `You need ₹${plan.monthlyAmount} to start this SIP` });
+      return;
+    }
+    // Deduct first installment
+    const sipGrams = ((plan.monthlyAmount - plan.monthlyAmount * GST_RATE) / (plan.metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver))).toFixed(4);
+    const ok = deductForInvestment(plan.monthlyAmount, plan.metal, sipGrams);
+    if (ok) {
+      enrollInSIP(plan);
+      // Update the just-enrolled SIP's first installment
+      toast.success(`Enrolled in ${plan.name}!`, {
+        description: `First installment of ₹${plan.monthlyAmount} paid. Check SIP tab for progress.`,
+      });
+      setSelectedPlan(null);
+    }
+  };
+
+  const enrolledPlanIds = activeSIPs.map(s => s.planId);
 
   return (
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
@@ -79,7 +102,7 @@ const InvestScreen = () => {
         ]).map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => { setTab(key); if (key !== "sip") setAmount(""); }}
+            onClick={() => { setTab(key); if (key !== "sip") setAmount(""); setSelectedPlan(null); }}
             className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all ${
               tab === key
                 ? key === "gold"
@@ -175,65 +198,139 @@ const InvestScreen = () => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {/* SIP Progress Card */}
-            <motion.div className="glass-card p-6 mt-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-muted-foreground">Silver Spree Progress</span>
-                <span className="text-sm font-semibold text-primary">{completed}/{total} months</span>
-              </div>
-              <div className="h-3 rounded-full bg-muted overflow-hidden">
+            {!selectedPlan ? (
+              <>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mt-5 mb-3">Choose a SIP Plan</p>
+                <div className="space-y-3">
+                  {SIP_PLANS.map((plan, i) => {
+                    const enrolled = enrolledPlanIds.includes(plan.id);
+                    return (
+                      <motion.div
+                        key={plan.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        onClick={() => !enrolled && setSelectedPlan(plan)}
+                        className={`glass-card p-4 cursor-pointer transition-all ${
+                          enrolled
+                            ? "opacity-60 cursor-default"
+                            : "hover:border-primary/30 active:scale-[0.98]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              plan.metal === "gold" ? "gold-gradient" : "silver-gradient"
+                            }`}>
+                              <Sparkles size={18} className="text-primary-foreground" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{plan.name}</p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">{plan.description}</p>
+                            </div>
+                          </div>
+                          {enrolled ? (
+                            <div className="flex items-center gap-1 text-primary">
+                              <Check size={14} />
+                              <span className="text-[10px] font-semibold">Enrolled</span>
+                            </div>
+                          ) : (
+                            <ChevronRight size={18} className="text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/30">
+                          <div>
+                            <p className="text-[10px] text-muted-foreground">Monthly</p>
+                            <p className="text-xs font-semibold text-foreground">₹{plan.monthlyAmount.toLocaleString("en-IN")}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground">Duration</p>
+                            <p className="text-xs font-semibold text-foreground">{plan.duration} months</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground">Reward</p>
+                            <p className="text-xs font-semibold text-primary">{plan.bonusReward}</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                {activeSIPs.length > 0 && (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate("/sip")}
+                    className="w-full mt-6 py-3 rounded-xl border border-primary/30 text-primary font-semibold text-sm"
+                  >
+                    View My SIPs ({activeSIPs.length})
+                  </motion.button>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Selected Plan Detail */}
                 <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ delay: 0.2, duration: 1, ease: "easeOut" }}
-                  className="h-full rounded-full gold-gradient"
-                />
-              </div>
-              <div className="flex justify-between mt-3">
-                {Array.from({ length: total }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2 h-2 rounded-full ${i < completed ? "bg-primary" : "bg-muted"}`}
-                  />
-                ))}
-              </div>
-            </motion.div>
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="glass-card p-6 mt-4"
+                >
+                  <button
+                    onClick={() => setSelectedPlan(null)}
+                    className="text-xs text-muted-foreground mb-3 flex items-center gap-1"
+                  >
+                    <ArrowLeft size={12} /> Back to plans
+                  </button>
 
-            {/* SIP Details */}
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="glass-card p-4">
-                <Calendar size={18} className="text-primary mb-2" />
-                <p className="text-xs text-muted-foreground">Next Due</p>
-                <p className="text-sm font-semibold text-foreground mt-0.5">15 Apr 2026</p>
-              </div>
-              <div className="glass-card p-4">
-                <Sparkles size={18} className="text-primary mb-2" />
-                <p className="text-xs text-muted-foreground">Monthly</p>
-                <p className="text-sm font-semibold text-foreground mt-0.5">₹1,000</p>
-              </div>
-            </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      selectedPlan.metal === "gold" ? "gold-gradient gold-glow" : "silver-gradient"
+                    }`}>
+                      <Sparkles size={22} className="text-primary-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-display font-bold text-foreground">{selectedPlan.name}</p>
+                      <p className="text-xs text-muted-foreground">{selectedPlan.description}</p>
+                    </div>
+                  </div>
 
-            {/* Reward */}
-            <div className="mt-4 glass-card p-5 border-primary/20 border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
-                  <Trophy size={18} className="text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground text-sm">Complete & Earn Reward!</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Get 5g bonus silver on completing 12 months</p>
-                </div>
-              </div>
-            </div>
+                  <div className="grid grid-cols-3 gap-3 mt-5">
+                    <div className="text-center p-3 bg-background/50 rounded-xl">
+                      <p className="text-[10px] text-muted-foreground">Monthly</p>
+                      <p className="text-sm font-bold text-foreground">₹{selectedPlan.monthlyAmount.toLocaleString("en-IN")}</p>
+                    </div>
+                    <div className="text-center p-3 bg-background/50 rounded-xl">
+                      <p className="text-[10px] text-muted-foreground">Duration</p>
+                      <p className="text-sm font-bold text-foreground">{selectedPlan.duration}mo</p>
+                    </div>
+                    <div className="text-center p-3 bg-background/50 rounded-xl">
+                      <p className="text-[10px] text-muted-foreground">Total</p>
+                      <p className="text-sm font-bold text-foreground">₹{(selectedPlan.monthlyAmount * selectedPlan.duration).toLocaleString("en-IN")}</p>
+                    </div>
+                  </div>
 
-            {/* Pay SIP CTA */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/sip")}
-              className="w-full mt-8 py-4 rounded-2xl font-semibold text-lg gold-gradient text-primary-foreground animate-glow-pulse"
-            >
-              View Full SIP Details
-            </motion.button>
+                  <div className="mt-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
+                    <p className="text-xs text-primary font-semibold">🎁 Reward: {selectedPlan.bonusReward}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Complete all {selectedPlan.duration} months to earn your bonus</p>
+                  </div>
+                </motion.div>
+
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleEnrollSIP(selectedPlan)}
+                  className={`w-full mt-6 py-4 rounded-2xl font-semibold text-lg transition-all ${
+                    selectedPlan.monthlyAmount <= balance
+                      ? "gold-gradient text-primary-foreground animate-glow-pulse"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  Start SIP — ₹{selectedPlan.monthlyAmount.toLocaleString("en-IN")}/mo
+                </motion.button>
+                <p className="text-[10px] text-muted-foreground text-center mt-2">
+                  First installment will be deducted now
+                </p>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
