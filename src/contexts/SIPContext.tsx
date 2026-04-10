@@ -79,12 +79,18 @@ interface SIPContextType {
   activeSIPs: ActiveSIP[];
   enrollInSIP: (plan: SIPPlan) => void;
   payInstallment: (sipId: string, grams: number) => boolean;
+  pauseSIP: (sipId: string) => void;
+  resumeSIP: (sipId: string) => void;
+  cancelSIP: (sipId: string) => void;
 }
 
 const SIPContext = createContext<SIPContextType>({
   activeSIPs: [],
   enrollInSIP: () => {},
   payInstallment: () => false,
+  pauseSIP: () => {},
+  resumeSIP: () => {},
+  cancelSIP: () => {},
 });
 
 export const useSIP = () => useContext(SIPContext);
@@ -132,6 +138,7 @@ export const SIPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       nextDueDate: nextDue.toISOString(),
       totalInvested: 0,
       totalGrams: 0,
+      status: "active",
     };
     persist([...activeSIPs, newSIP]);
   }, [activeSIPs, persist]);
