@@ -23,17 +23,17 @@ const MetalCard = ({ type, grams, value, delay = 0 }: MetalCardProps) => {
     >
       <div className="relative z-10">
         <p className={`text-xs font-semibold uppercase tracking-wider ${
-          isGold ? "text-primary-foreground/70" : "text-secondary-foreground/70"
+          isGold ? "text-primary-foreground/70" : "text-primary-foreground/70"
         }`}>
           {isGold ? "Gold" : "Silver"}
         </p>
         <p className={`text-2xl font-display font-bold mt-1 ${
-          isGold ? "text-primary-foreground" : "text-secondary-foreground"
+          isGold ? "text-primary-foreground" : "text-primary-foreground"
         }`}>
           {grams}g
         </p>
         <p className={`text-sm mt-0.5 ${
-          isGold ? "text-primary-foreground/80" : "text-secondary-foreground/80"
+          isGold ? "text-primary-foreground/80" : "text-primary-foreground/80"
         }`}>
           ₹{value}
         </p>
