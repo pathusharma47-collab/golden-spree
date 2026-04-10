@@ -98,11 +98,25 @@ const AdminDashboard = () => {
     fetchBanners();
   }, []);
 
-  const savePrices = () => {
-    const updated = { ...prices, updatedAt: new Date().toISOString() };
-    setPrices(updated);
-    localStorage.setItem("metal_prices", JSON.stringify(updated));
+  const savePrices = async () => {
+    if (!pricesRowId) return;
+    const { error } = await supabase
+      .from("metal_prices")
+      .update({
+        gold_24k: parseFloat(prices.gold24k),
+        gold_22k: parseFloat(prices.gold22k),
+        silver: parseFloat(prices.silver),
+      })
+      .eq("id", pricesRowId);
+
+    if (error) {
+      console.error("Error saving prices:", error);
+      toast.error("Failed to save prices");
+      return;
+    }
+    setPrices({ ...prices, updatedAt: new Date().toISOString() });
     setPriceSaved(true);
+    toast.success("Prices updated for all users!");
     setTimeout(() => setPriceSaved(false), 2000);
   };
 
