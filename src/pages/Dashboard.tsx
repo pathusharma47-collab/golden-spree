@@ -74,18 +74,15 @@ const Dashboard = () => {
         <div className="grid grid-cols-3 gap-2">
           <div className="gold-gradient gold-glow rounded-xl p-3 text-center">
             <p className="text-[10px] text-primary-foreground/70 font-semibold uppercase">Gold 24K</p>
-            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}</p>
-            <p className="text-[9px] text-primary-foreground/60 mt-0.5">/gram</p>
+            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}<span className="text-[10px] font-normal text-primary-foreground/60">/g</span></p>
           </div>
           <div className="gold-gradient rounded-xl p-3 text-center opacity-90">
             <p className="text-[10px] text-primary-foreground/70 font-semibold uppercase">Gold 22K</p>
-            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}</p>
-            <p className="text-[9px] text-primary-foreground/60 mt-0.5">/gram</p>
+            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}<span className="text-[10px] font-normal text-primary-foreground/60">/g</span></p>
           </div>
           <div className="silver-gradient rounded-xl p-3 text-center">
             <p className="text-[10px] text-primary-foreground/70 font-semibold uppercase">Silver</p>
-            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
-            <p className="text-[9px] text-primary-foreground/60 mt-0.5">/gram</p>
+            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.silver).toLocaleString("en-IN")}<span className="text-[10px] font-normal text-primary-foreground/60">/g</span></p>
           </div>
         </div>
         <p className="text-[9px] text-muted-foreground text-center mt-3 opacity-60">
