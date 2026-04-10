@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { SIPProvider } from "@/contexts/SIPContext";
 import Index from "./pages/Index";
 import InvestScreen from "./pages/InvestScreen";
 import RedeemScreen from "./pages/RedeemScreen";
@@ -67,7 +68,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <WalletProvider>
-            <AppRoutes />
+            <SIPProvider>
+              <AppRoutes />
+            </SIPProvider>
           </WalletProvider>
         </AuthProvider>
       </BrowserRouter>
