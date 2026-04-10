@@ -5,6 +5,7 @@ import QuickAction from "@/components/QuickAction";
 import BannerCarousel from "@/components/BannerCarousel";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/logo.jpg";
 
 const Dashboard = () => {
   const hour = new Date().getHours();
@@ -22,12 +23,15 @@ const Dashboard = () => {
 
   return (
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
-      {/* Greeting */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <p className="text-muted-foreground text-sm">{greeting},</p>
-        <h1 className="font-display text-2xl font-bold text-foreground mt-0.5">
-          {user?.name || "Arjun"}
-        </h1>
+      {/* Header with Logo */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex items-center gap-3">
+        <img src={logo} alt="Maheshwari Alankar" className="w-11 h-11 rounded-xl object-contain bg-white shadow-sm" />
+        <div>
+          <p className="text-muted-foreground text-sm">{greeting},</p>
+          <h1 className="font-display text-xl font-bold text-foreground mt-0.5">
+            {user?.name || "Arjun"}
+          </h1>
+        </div>
       </motion.div>
 
       {/* Portfolio Value */}

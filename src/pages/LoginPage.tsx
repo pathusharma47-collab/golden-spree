@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogIn, Eye, EyeOff } from "lucide-react";
+import logo from "@/assets/logo.jpg";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -36,9 +37,9 @@ const LoginPage = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-            className="w-16 h-16 mx-auto mb-4 rounded-2xl gold-gradient flex items-center justify-center gold-glow"
+            className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg"
           >
-            <span className="text-2xl font-bold text-primary-foreground font-display">M</span>
+            <img src={logo} alt="Maheshwari Alankar" className="w-full h-full object-contain bg-white" />
           </motion.div>
           <h1 className="text-2xl font-display font-bold text-foreground">Maheshwari Alankar</h1>
           <p className="text-muted-foreground text-sm mt-1">Gold & Silver Savings</p>
