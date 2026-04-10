@@ -24,6 +24,7 @@ export interface ActiveSIP {
   nextDueDate: string;
   totalInvested: number;
   totalGrams: number;
+  status: "active" | "paused" | "cancelled" | "completed";
 }
 
 export const SIP_PLANS: SIPPlan[] = [
