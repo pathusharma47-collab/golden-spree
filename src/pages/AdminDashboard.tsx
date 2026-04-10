@@ -434,12 +434,20 @@ const AdminDashboard = () => {
                         maheshwarialankar.com <ExternalLink size={10} />
                       </a>
                     </div>
-                    <button
-                      onClick={() => removeBanner(banner.id)}
-                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => startEditBanner(banner)}
+                        className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => removeBanner(banner.id)}
+                        className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </motion.div>
                 ))}
               </div>
