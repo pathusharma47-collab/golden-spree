@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingUp, ArrowDownRight, DollarSign, Gift, Coins, CircleDollarSign } from "lucide-react";
+import { TrendingUp, ArrowDownRight, DollarSign, Gift } from "lucide-react";
 import MetalCard from "@/components/MetalCard";
 import QuickAction from "@/components/QuickAction";
 import BannerCarousel from "@/components/BannerCarousel";
@@ -72,29 +72,20 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-background/50 rounded-xl p-3 text-center border border-border/50">
-            <div className="w-7 h-7 rounded-full bg-amber-500/15 flex items-center justify-center mx-auto mb-1.5">
-              <CircleDollarSign size={14} className="text-amber-500" />
-            </div>
-            <p className="text-[10px] text-muted-foreground font-medium">Gold 24K</p>
-            <p className="text-sm font-bold text-foreground mt-0.5">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">/gram</p>
+          <div className="gold-gradient gold-glow rounded-xl p-3 text-center">
+            <p className="text-[10px] text-primary-foreground/70 font-semibold uppercase">Gold 24K</p>
+            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}</p>
+            <p className="text-[9px] text-primary-foreground/60 mt-0.5">/gram</p>
           </div>
-          <div className="bg-background/50 rounded-xl p-3 text-center border border-border/50">
-            <div className="w-7 h-7 rounded-full bg-amber-400/15 flex items-center justify-center mx-auto mb-1.5">
-              <Coins size={14} className="text-amber-400" />
-            </div>
-            <p className="text-[10px] text-muted-foreground font-medium">Gold 22K</p>
-            <p className="text-sm font-bold text-foreground mt-0.5">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">/gram</p>
+          <div className="gold-gradient rounded-xl p-3 text-center opacity-90">
+            <p className="text-[10px] text-primary-foreground/70 font-semibold uppercase">Gold 22K</p>
+            <p className="text-sm font-bold text-primary-foreground mt-1">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}</p>
+            <p className="text-[9px] text-primary-foreground/60 mt-0.5">/gram</p>
           </div>
-          <div className="bg-background/50 rounded-xl p-3 text-center border border-border/50">
-            <div className="w-7 h-7 rounded-full bg-slate-400/15 flex items-center justify-center mx-auto mb-1.5">
-              <Coins size={14} className="text-slate-400" />
-            </div>
-            <p className="text-[10px] text-muted-foreground font-medium">Silver</p>
-            <p className="text-sm font-bold text-foreground mt-0.5">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">/gram</p>
+          <div className="silver-gradient rounded-xl p-3 text-center">
+            <p className="text-[10px] text-secondary-foreground/70 font-semibold uppercase">Silver</p>
+            <p className="text-sm font-bold text-secondary-foreground mt-1">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
+            <p className="text-[9px] text-secondary-foreground/60 mt-0.5">/gram</p>
           </div>
         </div>
         <p className="text-[9px] text-muted-foreground text-center mt-3 opacity-60">
