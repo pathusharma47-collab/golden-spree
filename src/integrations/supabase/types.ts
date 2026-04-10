@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      metal_prices: {
+        Row: {
+          created_at: string
+          gold_22k: number
+          gold_24k: number
+          id: string
+          silver: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gold_22k?: number
+          gold_24k?: number
+          id?: string
+          silver?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gold_22k?: number
+          gold_24k?: number
+          id?: string
+          silver?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

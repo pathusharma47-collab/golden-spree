@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface MetalPrices {
   gold24k: string;
@@ -15,20 +16,44 @@ const DEFAULT_PRICES: MetalPrices = {
 };
 
 export const useMetalPrices = () => {
-  const [prices, setPrices] = useState<MetalPrices>(() => {
-    const stored = localStorage.getItem("metal_prices");
-    return stored ? JSON.parse(stored) : DEFAULT_PRICES;
-  });
+  const [prices, setPrices] = useState<MetalPrices>(DEFAULT_PRICES);
 
   useEffect(() => {
-    const handler = () => {
-      const stored = localStorage.getItem("metal_prices");
-      if (stored) setPrices(JSON.parse(stored));
+    const fetchPrices = async () => {
+      const { data, error } = await supabase
+        .from("metal_prices")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!error && data) {
+        setPrices({
+          gold24k: String(data.gold_24k),
+          gold22k: String(data.gold_22k),
+          silver: String(data.silver),
+          updatedAt: data.updated_at,
+        });
+      }
     };
-    window.addEventListener("storage", handler);
-    // Also poll for same-tab updates
-    const interval = setInterval(handler, 2000);
-    return () => { window.removeEventListener("storage", handler); clearInterval(interval); };
+
+    fetchPrices();
+
+    // Realtime subscription for live updates
+    const channel = supabase
+      .channel("metal-prices-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "metal_prices" },
+        () => {
+          fetchPrices();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return prices;

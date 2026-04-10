@@ -42,10 +42,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [prices, setPrices] = useState<PriceData>(() => {
-    const stored = localStorage.getItem("metal_prices");
-    return stored ? JSON.parse(stored) : DEFAULT_PRICES;
-  });
+  const [prices, setPrices] = useState<PriceData>(DEFAULT_PRICES);
+  const [pricesRowId, setPricesRowId] = useState<string | null>(null);
 
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
@@ -55,6 +53,29 @@ const AdminDashboard = () => {
   const [bannerTitle, setBannerTitle] = useState("");
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
+
+  // Load prices from Supabase
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const { data, error } = await supabase
+        .from("metal_prices")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!error && data) {
+        setPricesRowId(data.id);
+        setPrices({
+          gold24k: String(data.gold_24k),
+          gold22k: String(data.gold_22k),
+          silver: String(data.silver),
+          updatedAt: data.updated_at,
+        });
+      }
+    };
+    fetchPrices();
+  }, []);
 
   // Load banners from Supabase
   useEffect(() => {
@@ -77,11 +98,25 @@ const AdminDashboard = () => {
     fetchBanners();
   }, []);
 
-  const savePrices = () => {
-    const updated = { ...prices, updatedAt: new Date().toISOString() };
-    setPrices(updated);
-    localStorage.setItem("metal_prices", JSON.stringify(updated));
+  const savePrices = async () => {
+    if (!pricesRowId) return;
+    const { error } = await supabase
+      .from("metal_prices")
+      .update({
+        gold_24k: parseFloat(prices.gold24k),
+        gold_22k: parseFloat(prices.gold22k),
+        silver: parseFloat(prices.silver),
+      })
+      .eq("id", pricesRowId);
+
+    if (error) {
+      console.error("Error saving prices:", error);
+      toast.error("Failed to save prices");
+      return;
+    }
+    setPrices({ ...prices, updatedAt: new Date().toISOString() });
     setPriceSaved(true);
+    toast.success("Prices updated for all users!");
     setTimeout(() => setPriceSaved(false), 2000);
   };
 
