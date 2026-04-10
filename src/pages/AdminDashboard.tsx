@@ -54,6 +54,29 @@ const AdminDashboard = () => {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
 
+  // Load prices from Supabase
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const { data, error } = await supabase
+        .from("metal_prices")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!error && data) {
+        setPricesRowId(data.id);
+        setPrices({
+          gold24k: String(data.gold_24k),
+          gold22k: String(data.gold_22k),
+          silver: String(data.silver),
+          updatedAt: data.updated_at,
+        });
+      }
+    };
+    fetchPrices();
+  }, []);
+
   // Load banners from Supabase
   useEffect(() => {
     const fetchBanners = async () => {
