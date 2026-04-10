@@ -15,6 +15,7 @@ interface WalletContextType {
   addFunds: (amount: number) => void;
   withdraw: (amount: number) => boolean;
   deductForInvestment: (amount: number, metalType: string, grams: string) => boolean;
+  isNewUser: boolean;
 }
 
 const WalletContext = createContext<WalletContextType>({
@@ -23,17 +24,22 @@ const WalletContext = createContext<WalletContextType>({
   addFunds: () => {},
   withdraw: () => false,
   deductForInvestment: () => false,
+  isNewUser: false,
 });
 
 export const useWallet = () => useContext(WalletContext);
 
 const getStorageKey = (email: string) => `wallet_${email}`;
 const getTxKey = (email: string) => `wallet_tx_${email}`;
+const getBonusKey = (email: string) => `wallet_bonus_${email}`;
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const storageKey = user ? getStorageKey(user.email) : "";
   const txKey = user ? getTxKey(user.email) : "";
+  const bonusKey = user ? getBonusKey(user.email) : "";
+
+  const [isNewUser, setIsNewUser] = useState(false);
 
   const [balance, setBalance] = useState<number>(() => {
     if (!storageKey) return 0;
@@ -46,13 +52,35 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return stored ? JSON.parse(stored) : [];
   });
 
-  // Re-sync when user changes
+  // Re-sync when user changes + apply welcome bonus for new users
   useEffect(() => {
-    if (!storageKey) { setBalance(0); setTransactions([]); return; }
-    setBalance(parseFloat(localStorage.getItem(storageKey) || "0"));
-    const stored = localStorage.getItem(txKey);
-    setTransactions(stored ? JSON.parse(stored) : []);
-  }, [storageKey, txKey]);
+    if (!storageKey) { setBalance(0); setTransactions([]); setIsNewUser(false); return; }
+
+    const existingBal = localStorage.getItem(storageKey);
+    const bonusApplied = localStorage.getItem(bonusKey);
+
+    if (!existingBal && !bonusApplied) {
+      // New user — give ₹100 welcome bonus
+      const tx: WalletTransaction = {
+        id: Date.now().toString(),
+        type: "credit",
+        amount: 100,
+        description: "🎁 Welcome Bonus",
+        date: new Date().toISOString(),
+      };
+      localStorage.setItem(storageKey, "100");
+      localStorage.setItem(txKey, JSON.stringify([tx]));
+      localStorage.setItem(bonusKey, "true");
+      setBalance(100);
+      setTransactions([tx]);
+      setIsNewUser(true);
+    } else {
+      setBalance(parseFloat(localStorage.getItem(storageKey) || "0"));
+      const stored = localStorage.getItem(txKey);
+      setTransactions(stored ? JSON.parse(stored) : []);
+      setIsNewUser(false);
+    }
+  }, [storageKey, txKey, bonusKey]);
 
   const persist = useCallback((newBal: number, newTx: WalletTransaction[]) => {
     if (!storageKey) return;
@@ -105,7 +133,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [balance, transactions, persist]);
 
   return (
-    <WalletContext.Provider value={{ balance, transactions, addFunds, withdraw, deductForInvestment }}>
+    <WalletContext.Provider value={{ balance, transactions, addFunds, withdraw, deductForInvestment, isNewUser }}>
       {children}
     </WalletContext.Provider>
   );
