@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import {
   ExternalLink,
   CheckCircle,
   IndianRupee,
+  Upload,
 } from "lucide-react";
 
 interface PriceData {
@@ -21,7 +22,7 @@ interface PriceData {
 
 interface Banner {
   id: string;
-  imageUrl: string;
+  imageData: string; // base64 data URL
   redirectUrl: string;
   title: string;
 }
@@ -36,6 +37,7 @@ const DEFAULT_PRICES: PriceData = {
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [prices, setPrices] = useState<PriceData>(() => {
     const stored = localStorage.getItem("metal_prices");
@@ -48,7 +50,8 @@ const AdminDashboard = () => {
   });
 
   const [priceSaved, setPriceSaved] = useState(false);
-  const [newBanner, setNewBanner] = useState({ title: "", imageUrl: "" });
+  const [bannerTitle, setBannerTitle] = useState("");
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
 
   const savePrices = () => {
@@ -59,18 +62,32 @@ const AdminDashboard = () => {
     setTimeout(() => setPriceSaved(false), 2000);
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image must be under 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setBannerPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const addBanner = () => {
-    if (!newBanner.title || !newBanner.imageUrl) return;
+    if (!bannerTitle || !bannerPreview) return;
     const banner: Banner = {
       id: Date.now().toString(),
-      imageUrl: newBanner.imageUrl,
+      imageData: bannerPreview,
       redirectUrl: "https://maheshwarialankar.com",
-      title: newBanner.title,
+      title: bannerTitle,
     };
     const updated = [...banners, banner];
     setBanners(updated);
     localStorage.setItem("admin_banners", JSON.stringify(updated));
-    setNewBanner({ title: "", imageUrl: "" });
+    setBannerTitle("");
+    setBannerPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeBanner = (id: string) => {
@@ -136,7 +153,6 @@ const AdminDashboard = () => {
                 Update Metal Prices (per gram)
               </h2>
 
-              {/* Gold 24K */}
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Gold 24K (₹/gram)</label>
                 <input
@@ -147,7 +163,6 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              {/* Gold 22K */}
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Gold 22K (₹/gram)</label>
                 <input
@@ -158,7 +173,6 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              {/* Silver */}
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Silver (₹/gram)</label>
                 <input
@@ -193,7 +207,6 @@ const AdminDashboard = () => {
             exit={{ opacity: 0, x: -20 }}
             className="space-y-4"
           >
-            {/* Add Banner */}
             <div className="glass-card p-5 space-y-4">
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <Image size={16} className="text-primary" />
@@ -204,22 +217,36 @@ const AdminDashboard = () => {
                 <label className="text-xs text-muted-foreground mb-1 block">Banner Title</label>
                 <input
                   type="text"
-                  value={newBanner.title}
-                  onChange={(e) => setNewBanner({ ...newBanner, title: e.target.value })}
+                  value={bannerTitle}
+                  onChange={(e) => setBannerTitle(e.target.value)}
                   placeholder="e.g. Diwali Sale"
                   className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Image URL</label>
+                <label className="text-xs text-muted-foreground mb-1 block">Upload Image</label>
                 <input
-                  type="url"
-                  value={newBanner.imageUrl}
-                  onChange={(e) => setNewBanner({ ...newBanner, imageUrl: e.target.value })}
-                  placeholder="https://example.com/banner.jpg"
-                  className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
                 />
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-24 rounded-xl border-2 border-dashed border-border bg-background flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
+                >
+                  {bannerPreview ? (
+                    <img src={bannerPreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <>
+                      <Upload size={20} />
+                      <span className="text-xs">Tap to upload image (max 2MB)</span>
+                    </>
+                  )}
+                </motion.button>
               </div>
 
               <p className="text-[10px] text-muted-foreground">
@@ -232,7 +259,7 @@ const AdminDashboard = () => {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={addBanner}
-                disabled={!newBanner.title || !newBanner.imageUrl}
+                disabled={!bannerTitle || !bannerPreview}
                 className="w-full h-12 rounded-xl gold-gradient text-primary-foreground font-semibold flex items-center justify-center gap-2 gold-glow disabled:opacity-50"
               >
                 <Image size={18} />
@@ -240,7 +267,6 @@ const AdminDashboard = () => {
               </motion.button>
             </div>
 
-            {/* Banner List */}
             {banners.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-medium text-muted-foreground px-1">
@@ -256,12 +282,9 @@ const AdminDashboard = () => {
                     className="glass-card p-3 flex items-center gap-3"
                   >
                     <img
-                      src={banner.imageUrl}
+                      src={banner.imageData}
                       alt={banner.title}
                       className="w-16 h-12 rounded-lg object-cover bg-muted"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/placeholder.svg";
-                      }}
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{banner.title}</p>

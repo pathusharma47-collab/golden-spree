@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
-import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const WalletPage = () => {
-  const { balance, transactions, addFunds, withdraw } = useWallet();
+  const { balance, transactions, addFunds, withdraw, isNewUser } = useWallet();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"add" | "withdraw" | null>(null);
   const [amount, setAmount] = useState("");
@@ -35,6 +35,21 @@ const WalletPage = () => {
 
       <h1 className="font-display text-2xl font-bold text-foreground">Wallet</h1>
       <p className="text-sm text-muted-foreground mt-1">Manage your funds</p>
+
+      {/* Welcome Bonus Banner */}
+      {isNewUser && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.05, duration: 0.4 }}
+          className="mt-4 gold-gradient rounded-xl px-4 py-3 flex items-center gap-3"
+        >
+          <Sparkles size={18} className="text-primary-foreground" />
+          <p className="text-sm font-semibold text-primary-foreground">
+            ₹100 Welcome Bonus Added! 🎁
+          </p>
+        </motion.div>
+      )}
 
       {/* Balance Card */}
       <motion.div

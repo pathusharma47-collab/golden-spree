@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { TrendingUp, ArrowDownRight, DollarSign, Gift, Sparkles } from "lucide-react";
+import { TrendingUp, ArrowDownRight, DollarSign, Gift } from "lucide-react";
 import MetalCard from "@/components/MetalCard";
 import QuickAction from "@/components/QuickAction";
+import BannerCarousel from "@/components/BannerCarousel";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -23,9 +24,7 @@ const Dashboard = () => {
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
       {/* Greeting */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <p className="text-muted-foreground text-sm">
-          {greeting},
-        </p>
+        <p className="text-muted-foreground text-sm">{greeting},</p>
         <h1 className="font-display text-2xl font-bold text-foreground mt-0.5">
           {user?.name || "Arjun"}
         </h1>
@@ -39,27 +38,42 @@ const Dashboard = () => {
         className="mt-6 glass-card p-6 text-center"
       >
         <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Portfolio</p>
-        <p className="text-4xl font-display font-bold text-foreground mt-2">
-          ₹{totalPortfolio}
-        </p>
+        <p className="text-4xl font-display font-bold text-foreground mt-2">₹{totalPortfolio}</p>
         <div className="flex items-center justify-center gap-1 mt-2 text-emerald-400 text-sm">
           <TrendingUp size={14} />
           <span>+2.4% today</span>
         </div>
       </motion.div>
 
-      {/* Welcome Bonus */}
+      {/* Live Prices */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3, duration: 0.4 }}
-        className="mt-4 gold-gradient rounded-xl px-4 py-3 flex items-center gap-3"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+        className="mt-4 glass-card p-4"
       >
-        <Sparkles size={18} className="text-primary-foreground" />
-        <p className="text-sm font-semibold text-primary-foreground">
-          ₹100 Welcome Bonus Applied 🎁
+        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Live Rates (per gram)</p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="text-center">
+            <p className="text-[10px] text-muted-foreground">Gold 24K</p>
+            <p className="text-sm font-bold text-foreground">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] text-muted-foreground">Gold 22K</p>
+            <p className="text-sm font-bold text-foreground">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] text-muted-foreground">Silver</p>
+            <p className="text-sm font-bold text-foreground">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
+          </div>
+        </div>
+        <p className="text-[9px] text-muted-foreground text-center mt-2">
+          Updated: {new Date(prices.updatedAt).toLocaleString("en-IN")}
         </p>
       </motion.div>
+
+      {/* Banner Carousel */}
+      <BannerCarousel />
 
       {/* Metal Cards */}
       <div className="grid grid-cols-2 gap-3 mt-6">
