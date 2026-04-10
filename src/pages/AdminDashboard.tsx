@@ -181,6 +181,55 @@ const AdminDashboard = () => {
     }
   };
 
+  const startEditBanner = (banner: Banner) => {
+    setEditingBanner(banner);
+    setEditTitle(banner.title);
+    setEditPreview(banner.image_data);
+  };
+
+  const cancelEdit = () => {
+    setEditingBanner(null);
+    setEditTitle("");
+    setEditPreview(null);
+  };
+
+  const handleEditImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be under 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setEditPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const saveEditBanner = async () => {
+    if (!editingBanner || !editTitle || !editPreview) return;
+    setSavingEdit(true);
+
+    const { error } = await supabase
+      .from("banners")
+      .update({
+        title: editTitle,
+        image_data: editPreview,
+      })
+      .eq("id", editingBanner.id);
+
+    if (error) {
+      console.error("Error updating banner:", error);
+      toast.error("Failed to update banner");
+    } else {
+      setBanners(banners.map((b) =>
+        b.id === editingBanner.id ? { ...b, title: editTitle, image_data: editPreview } : b
+      ));
+      toast.success("Banner updated!");
+      cancelEdit();
+    }
+    setSavingEdit(false);
+  };
+
   return (
     <div className="min-h-screen pb-28 px-4 pt-6">
       {/* Header */}
