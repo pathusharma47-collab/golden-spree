@@ -12,6 +12,8 @@ import {
   IndianRupee,
   Upload,
   Loader2,
+  Pencil,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -53,6 +55,13 @@ const AdminDashboard = () => {
   const [bannerTitle, setBannerTitle] = useState("");
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
+
+  // Edit banner state
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editPreview, setEditPreview] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   // Load prices from Supabase
   useEffect(() => {
@@ -170,6 +179,55 @@ const AdminDashboard = () => {
       setBanners(banners.filter((b) => b.id !== id));
       toast.success("Banner removed");
     }
+  };
+
+  const startEditBanner = (banner: Banner) => {
+    setEditingBanner(banner);
+    setEditTitle(banner.title);
+    setEditPreview(banner.image_data);
+  };
+
+  const cancelEdit = () => {
+    setEditingBanner(null);
+    setEditTitle("");
+    setEditPreview(null);
+  };
+
+  const handleEditImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be under 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setEditPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const saveEditBanner = async () => {
+    if (!editingBanner || !editTitle || !editPreview) return;
+    setSavingEdit(true);
+
+    const { error } = await supabase
+      .from("banners")
+      .update({
+        title: editTitle,
+        image_data: editPreview,
+      })
+      .eq("id", editingBanner.id);
+
+    if (error) {
+      console.error("Error updating banner:", error);
+      toast.error("Failed to update banner");
+    } else {
+      setBanners(banners.map((b) =>
+        b.id === editingBanner.id ? { ...b, title: editTitle, image_data: editPreview } : b
+      ));
+      toast.success("Banner updated!");
+      cancelEdit();
+    }
+    setSavingEdit(false);
   };
 
   return (
@@ -376,12 +434,20 @@ const AdminDashboard = () => {
                         maheshwarialankar.com <ExternalLink size={10} />
                       </a>
                     </div>
-                    <button
-                      onClick={() => removeBanner(banner.id)}
-                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => startEditBanner(banner)}
+                        className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => removeBanner(banner.id)}
+                        className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -390,6 +456,80 @@ const AdminDashboard = () => {
                 No banners added yet
               </div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Banner Modal */}
+      <AnimatePresence>
+        {editingBanner && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={cancelEdit}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-card p-5 w-full max-w-md space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Pencil size={16} className="text-primary" /> Edit Banner
+                </h2>
+                <button onClick={cancelEdit} className="p-1 rounded-lg hover:bg-muted transition-colors">
+                  <X size={18} className="text-muted-foreground" />
+                </button>
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Banner Title</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Banner Image</label>
+                <input
+                  ref={editFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleEditImageSelect}
+                  className="hidden"
+                />
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => editFileInputRef.current?.click()}
+                  className="w-full h-24 rounded-xl border-2 border-dashed border-border bg-background flex items-center justify-center overflow-hidden hover:border-primary/50 transition-colors"
+                >
+                  {editPreview ? (
+                    <img src={editPreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground flex flex-col items-center gap-2">
+                      <Upload size={20} /> Tap to change image
+                    </span>
+                  )}
+                </motion.button>
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={saveEditBanner}
+                disabled={!editTitle || !editPreview || savingEdit}
+                className="w-full h-12 rounded-xl gold-gradient text-primary-foreground font-semibold flex items-center justify-center gap-2 gold-glow disabled:opacity-50"
+              >
+                {savingEdit ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                {savingEdit ? "Saving..." : "Save Changes"}
+              </motion.button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
