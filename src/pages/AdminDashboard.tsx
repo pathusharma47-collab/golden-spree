@@ -42,10 +42,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [prices, setPrices] = useState<PriceData>(() => {
-    const stored = localStorage.getItem("metal_prices");
-    return stored ? JSON.parse(stored) : DEFAULT_PRICES;
-  });
+  const [prices, setPrices] = useState<PriceData>(DEFAULT_PRICES);
+  const [pricesRowId, setPricesRowId] = useState<string | null>(null);
 
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
