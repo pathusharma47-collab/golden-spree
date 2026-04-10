@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Trophy, Calendar, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowLeft, Trophy, Calendar, Sparkles, TrendingUp, Pause, Play, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSIP } from "@/contexts/SIPContext";
 import { useWallet } from "@/contexts/WalletContext";
@@ -10,7 +10,7 @@ const GST_RATE = 0.03;
 
 const SIPScreen = () => {
   const navigate = useNavigate();
-  const { activeSIPs, payInstallment } = useSIP();
+  const { activeSIPs, payInstallment, pauseSIP, resumeSIP, cancelSIP } = useSIP();
   const { balance, deductForInvestment } = useWallet();
   const prices = useMetalPrices();
 
