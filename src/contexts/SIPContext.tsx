@@ -24,6 +24,7 @@ export interface ActiveSIP {
   nextDueDate: string;
   totalInvested: number;
   totalGrams: number;
+  status: "active" | "paused" | "cancelled" | "completed";
 }
 
 export const SIP_PLANS: SIPPlan[] = [
@@ -78,12 +79,18 @@ interface SIPContextType {
   activeSIPs: ActiveSIP[];
   enrollInSIP: (plan: SIPPlan) => void;
   payInstallment: (sipId: string, grams: number) => boolean;
+  pauseSIP: (sipId: string) => void;
+  resumeSIP: (sipId: string) => void;
+  cancelSIP: (sipId: string) => void;
 }
 
 const SIPContext = createContext<SIPContextType>({
   activeSIPs: [],
   enrollInSIP: () => {},
   payInstallment: () => false,
+  pauseSIP: () => {},
+  resumeSIP: () => {},
+  cancelSIP: () => {},
 });
 
 export const useSIP = () => useContext(SIPContext);
@@ -131,6 +138,7 @@ export const SIPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       nextDueDate: nextDue.toISOString(),
       totalInvested: 0,
       totalGrams: 0,
+      status: "active",
     };
     persist([...activeSIPs, newSIP]);
   }, [activeSIPs, persist]);
@@ -156,8 +164,23 @@ export const SIPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   }, [activeSIPs, persist]);
 
+  const pauseSIP = useCallback((sipId: string) => {
+    const updated = activeSIPs.map(s => s.id === sipId ? { ...s, status: "paused" as const } : s);
+    persist(updated);
+  }, [activeSIPs, persist]);
+
+  const resumeSIP = useCallback((sipId: string) => {
+    const updated = activeSIPs.map(s => s.id === sipId ? { ...s, status: "active" as const } : s);
+    persist(updated);
+  }, [activeSIPs, persist]);
+
+  const cancelSIP = useCallback((sipId: string) => {
+    const updated = activeSIPs.map(s => s.id === sipId ? { ...s, status: "cancelled" as const } : s);
+    persist(updated);
+  }, [activeSIPs, persist]);
+
   return (
-    <SIPContext.Provider value={{ activeSIPs, enrollInSIP, payInstallment }}>
+    <SIPContext.Provider value={{ activeSIPs, enrollInSIP, payInstallment, pauseSIP, resumeSIP, cancelSIP }}>
       {children}
     </SIPContext.Provider>
   );
