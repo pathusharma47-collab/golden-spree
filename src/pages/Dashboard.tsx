@@ -56,22 +56,48 @@ const Dashboard = () => {
         transition={{ delay: 0.2, duration: 0.4 }}
         className="mt-4 glass-card p-4"
       >
-        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Live Rates (per gram)</p>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center">
-            <p className="text-[10px] text-muted-foreground">Gold 24K</p>
-            <p className="text-sm font-bold text-foreground">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}</p>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp size={16} className="text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Live Rates</p>
           </div>
-          <div className="text-center">
-            <p className="text-[10px] text-muted-foreground">Gold 22K</p>
-            <p className="text-sm font-bold text-foreground">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[10px] text-muted-foreground">Silver</p>
-            <p className="text-sm font-bold text-foreground">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
+          <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-semibold text-emerald-500 uppercase">Live</span>
           </div>
         </div>
-        <p className="text-[9px] text-muted-foreground text-center mt-2">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-background/50 rounded-xl p-3 text-center border border-border/50">
+            <div className="w-6 h-6 rounded-full bg-amber-500/15 flex items-center justify-center mx-auto mb-1.5">
+              <span className="text-[10px]">🥇</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground font-medium">Gold 24K</p>
+            <p className="text-sm font-bold text-foreground mt-0.5">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}</p>
+            <p className="text-[9px] text-muted-foreground mt-0.5">/gram</p>
+          </div>
+          <div className="bg-background/50 rounded-xl p-3 text-center border border-border/50">
+            <div className="w-6 h-6 rounded-full bg-amber-400/15 flex items-center justify-center mx-auto mb-1.5">
+              <span className="text-[10px]">✨</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground font-medium">Gold 22K</p>
+            <p className="text-sm font-bold text-foreground mt-0.5">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}</p>
+            <p className="text-[9px] text-muted-foreground mt-0.5">/gram</p>
+          </div>
+          <div className="bg-background/50 rounded-xl p-3 text-center border border-border/50">
+            <div className="w-6 h-6 rounded-full bg-slate-300/15 flex items-center justify-center mx-auto mb-1.5">
+              <span className="text-[10px]">🥈</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground font-medium">Silver</p>
+            <p className="text-sm font-bold text-foreground mt-0.5">₹{parseFloat(prices.silver).toLocaleString("en-IN")}</p>
+            <p className="text-[9px] text-muted-foreground mt-0.5">/gram</p>
+          </div>
+        </div>
+        <p className="text-[9px] text-muted-foreground text-center mt-3 opacity-60">
           Updated: {new Date(prices.updatedAt).toLocaleString("en-IN")}
         </p>
       </motion.div>
