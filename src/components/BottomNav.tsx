@@ -1,12 +1,12 @@
-import { Home, TrendingUp, Wallet, Gift, User } from "lucide-react";
+import { Home, Coins, Trophy, Wallet, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const tabs = [
   { icon: Home, label: "Home", path: "/" },
-  { icon: TrendingUp, label: "Invest", path: "/invest" },
+  { icon: Coins, label: "Gold", path: "/invest" },
+  { icon: Trophy, label: "Rewards", path: "/gift" },
   { icon: Wallet, label: "Wallet", path: "/wallet" },
-  { icon: Gift, label: "Gift", path: "/gift" },
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
@@ -15,28 +15,32 @@ const BottomNav = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-card rounded-t-3xl rounded-b-none border-t border-border/30 px-2 pb-safe">
-      <div className="flex items-center justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/40 px-1 pb-safe">
+      <div className="flex items-center justify-around py-1.5">
         {tabs.map((tab) => {
           const active = location.pathname === tab.path;
           return (
             <motion.button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              whileTap={{ scale: 0.9 }}
-              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors ${
-                active ? "text-primary" : "text-muted-foreground"
-              }`}
+              whileTap={{ scale: 0.85 }}
+              className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl transition-all"
             >
               {active && (
                 <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute -top-0.5 w-8 h-1 rounded-full gold-gradient"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  layoutId="nav-bg"
+                  className="absolute inset-0 rounded-2xl bg-primary/10"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}
-              <tab.icon size={22} strokeWidth={active ? 2.5 : 1.5} />
-              <span className="text-[10px] font-medium">{tab.label}</span>
+              <tab.icon
+                size={20}
+                strokeWidth={active ? 2.5 : 1.5}
+                className={`relative z-10 transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
+              />
+              <span className={`relative z-10 text-[10px] font-medium transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
+                {tab.label}
+              </span>
             </motion.button>
           );
         })}
