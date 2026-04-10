@@ -56,6 +56,13 @@ const AdminDashboard = () => {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
 
+  // Edit banner state
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editPreview, setEditPreview] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+
   // Load prices from Supabase
   useEffect(() => {
     const fetchPrices = async () => {
