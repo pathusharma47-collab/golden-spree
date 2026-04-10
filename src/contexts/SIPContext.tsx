@@ -164,8 +164,23 @@ export const SIPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   }, [activeSIPs, persist]);
 
+  const pauseSIP = useCallback((sipId: string) => {
+    const updated = activeSIPs.map(s => s.id === sipId ? { ...s, status: "paused" as const } : s);
+    persist(updated);
+  }, [activeSIPs, persist]);
+
+  const resumeSIP = useCallback((sipId: string) => {
+    const updated = activeSIPs.map(s => s.id === sipId ? { ...s, status: "active" as const } : s);
+    persist(updated);
+  }, [activeSIPs, persist]);
+
+  const cancelSIP = useCallback((sipId: string) => {
+    const updated = activeSIPs.map(s => s.id === sipId ? { ...s, status: "cancelled" as const } : s);
+    persist(updated);
+  }, [activeSIPs, persist]);
+
   return (
-    <SIPContext.Provider value={{ activeSIPs, enrollInSIP, payInstallment }}>
+    <SIPContext.Provider value={{ activeSIPs, enrollInSIP, payInstallment, pauseSIP, resumeSIP, cancelSIP }}>
       {children}
     </SIPContext.Provider>
   );
