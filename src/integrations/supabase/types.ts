@@ -110,6 +110,45 @@ export type Database = {
         }
         Relationships: []
       }
+      nominees: {
+        Row: {
+          created_at: string
+          id: string
+          nominee_dob: string | null
+          nominee_name: string
+          nominee_pan: string | null
+          nominee_phone: string | null
+          percentage: number
+          relationship: string
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nominee_dob?: string | null
+          nominee_name: string
+          nominee_pan?: string | null
+          nominee_phone?: string | null
+          percentage?: number
+          relationship: string
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nominee_dob?: string | null
+          nominee_name?: string
+          nominee_pan?: string | null
+          nominee_phone?: string | null
+          percentage?: number
+          relationship?: string
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
