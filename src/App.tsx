@@ -18,6 +18,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import WalletPage from "./pages/WalletPage";
 import NotFound from "./pages/NotFound";
+import SpinWheelScreen from "./pages/SpinWheelScreen";
 import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const AppRoutes = () => {
           <Route path="/transactions" element={<ProtectedRoute><TransactionsScreen /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+          <Route path="/spin" element={<ProtectedRoute><SpinWheelScreen /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
