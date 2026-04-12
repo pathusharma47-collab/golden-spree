@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_details: {
+        Row: {
+          created_at: string
+          date_of_birth: string
+          first_name: string
+          id: string
+          last_name: string
+          pan_number: string
+          status: string
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth: string
+          first_name: string
+          id?: string
+          last_name: string
+          pan_number: string
+          status?: string
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          pan_number?: string
+          status?: string
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
       metal_prices: {
         Row: {
           created_at: string

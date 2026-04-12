@@ -19,6 +19,7 @@ import ProfilePage from "./pages/ProfilePage";
 import WalletPage from "./pages/WalletPage";
 import NotFound from "./pages/NotFound";
 import SpinWheelScreen from "./pages/SpinWheelScreen";
+import KYCScreen from "./pages/KYCScreen";
 import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const AppRoutes = () => {
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
           <Route path="/spin" element={<ProtectedRoute><SpinWheelScreen /></ProtectedRoute>} />
+          <Route path="/kyc" element={<ProtectedRoute><KYCScreen /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
