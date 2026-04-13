@@ -1,4 +1,4 @@
-import { Home, Coins, Trophy, Wallet, User } from "lucide-react";
+import { Home, TrendingUp, Gift, Wallet, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
