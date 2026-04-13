@@ -108,7 +108,7 @@ const WalletPage = () => {
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={() => setMode(mode === "withdraw" ? null : "withdraw")}
+          onClick={handleWithdrawClick}
           className={`py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
             mode === "withdraw"
               ? "bg-destructive text-destructive-foreground"
