@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingUp, ArrowDownRight, Gift, Coins, Calendar, Zap, RotateCw, Users, UserCheck, ChevronRight, Sparkles } from "lucide-react";
+import { TrendingUp, ArrowDownRight, Gift, Gem, CalendarCheck, Zap, RefreshCw, UserPlus, ShieldCheck, ChevronRight, Sparkles, CircleDollarSign, Landmark } from "lucide-react";
 import BannerCarousel from "@/components/BannerCarousel";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useAuth } from "@/contexts/AuthContext";
