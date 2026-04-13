@@ -26,7 +26,7 @@ interface PANValidation {
   details?: string;
 }
 
-const validatePAN = (pan: string, lastName: string): PANValidation => {
+const validatePAN = (pan: string): PANValidation => {
   const cleaned = pan.toUpperCase().trim();
 
   if (cleaned.length === 0) return { valid: false, message: "PAN number is required" };
@@ -36,18 +36,6 @@ const validatePAN = (pan: string, lastName: string): PANValidation => {
   const entityChar = cleaned[3];
   if (!VALID_ENTITY_TYPES.includes(entityChar)) {
     return { valid: false, message: `Invalid entity type character '${entityChar}'` };
-  }
-
-  // For individual PANs (4th char = P), 5th char should match first letter of last name
-  if (entityChar === "P" && lastName.trim().length > 0) {
-    const expectedChar = lastName.trim()[0].toUpperCase();
-    if (cleaned[4] !== expectedChar) {
-      return {
-        valid: false,
-        message: `PAN 5th character '${cleaned[4]}' doesn't match last name initial '${expectedChar}'`,
-        details: "For individual PANs, the 5th character should be the first letter of your last name.",
-      };
-    }
   }
 
   // Check it's an individual PAN
@@ -76,7 +64,7 @@ const KYCScreen = () => {
     const upper = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
     setPanNumber(upper);
     if (upper.length === 10) {
-      setPanValidation(validatePAN(upper, lastName));
+      setPanValidation(validatePAN(upper));
     } else if (upper.length > 0) {
       setPanValidation({ valid: false, message: `${10 - upper.length} more characters needed` });
     } else {
@@ -86,10 +74,6 @@ const KYCScreen = () => {
 
   const handleLastNameChange = (value: string) => {
     setLastName(value);
-    // Re-validate PAN if already entered
-    if (panNumber.length === 10) {
-      setPanValidation(validatePAN(panNumber, value));
-    }
   };
 
   const isFormValid = () => {
@@ -305,8 +289,7 @@ const KYCScreen = () => {
         <ul className="text-[11px] text-muted-foreground space-y-1">
           <li>• Must be 10 characters: 5 letters + 4 digits + 1 letter</li>
           <li>• 4th character must be 'P' for individual PAN</li>
-          <li>• 5th character must match your last name initial</li>
-          <li>• Example: If last name is "Sharma", PAN format: ABC<b>P</b><b>S</b>1234X</li>
+          <li>• Example: ABCPD1234E</li>
         </ul>
       </motion.div>
     </motion.div>
