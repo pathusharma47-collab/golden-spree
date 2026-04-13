@@ -30,14 +30,6 @@ const WalletPage = () => {
     setMode(null);
   };
 
-  if (kycLoading) {
-    return (
-      <div className="px-5 pt-12 pb-28 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 size={32} className="animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground mt-3">Checking KYC status...</p>
-      </div>
-    );
-  }
 
   const handleWithdrawClick = () => {
     if (!isVerified) {
