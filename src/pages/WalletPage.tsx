@@ -39,34 +39,14 @@ const WalletPage = () => {
     );
   }
 
-  if (!isVerified) {
-    return (
-      <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)} className="text-muted-foreground mb-4">
-          <ArrowLeft size={22} />
-        </motion.button>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 flex flex-col items-center text-center mt-8"
-        >
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <ShieldCheck size={32} className="text-primary" />
-          </div>
-          <h2 className="font-display text-xl font-bold text-foreground mb-2">KYC Required</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Complete your KYC verification to enable wallet features like adding funds, investing, and withdrawals.
-          </p>
-          <Button
-            onClick={() => navigate("/kyc")}
-            className="w-full gold-gradient gold-glow text-primary-foreground font-semibold rounded-2xl py-3"
-          >
-            <ShieldCheck size={16} className="mr-2" /> Complete KYC Now
-          </Button>
-        </motion.div>
-      </div>
-    );
-  }
+  const handleWithdrawClick = () => {
+    if (!isVerified) {
+      toast.error("Complete KYC to withdraw funds");
+      navigate("/kyc");
+      return;
+    }
+    setMode(mode === "withdraw" ? null : "withdraw");
+  };
 
   return (
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
