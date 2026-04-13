@@ -141,9 +141,16 @@ const SpinWheelScreen = () => {
       if (spinKey) localStorage.setItem(spinKey, new Date().toISOString());
       setCanSpin(false);
 
-      // Apply cashback reward
-      if (SEGMENTS[winIndex].value > 0 && SEGMENTS[winIndex].label.includes("Cashback")) {
-        addFunds(SEGMENTS[winIndex].value);
+      // Apply reward to wallet
+      const won = SEGMENTS[winIndex];
+      if (won.value > 0) {
+        if (won.label.includes("Cashback")) {
+          addFunds(won.value);
+        } else if (won.label.includes("Gold")) {
+          // Credit gold value in rupees (value is grams, approximate ₹ equivalent)
+          // For now credit the rupee equivalent based on a rough rate
+          addFunds(won.value * 7150); // ~₹7150/g for 24K gold
+        }
       }
     }, 4000);
   };
