@@ -202,9 +202,9 @@ const Dashboard = () => {
         <div className="grid grid-cols-3 gap-2.5">
           {[
             { icon: RotateCw, label: "Spins", desc: "Win gold daily", color: "bg-amber-500/10", iconColor: "text-amber-500", path: "/spin" },
-            { icon: Calendar, label: "Weekly Save", desc: "₹200/week", color: "bg-blue-500/10", iconColor: "text-blue-500" },
-            { icon: Coins, label: "Monthly", desc: "₹1000/mo", color: "bg-violet-500/10", iconColor: "text-violet-500" },
-            { icon: Users, label: "Refer & Earn", desc: "Get free gold", color: "bg-emerald-500/10", iconColor: "text-emerald-500" },
+            { icon: Calendar, label: "Weekly Save", desc: "₹200/week", color: "bg-blue-500/10", iconColor: "text-blue-500", path: "/sip" },
+            { icon: Coins, label: "Monthly", desc: "₹1000/mo", color: "bg-violet-500/10", iconColor: "text-violet-500", path: "/sip" },
+            { icon: Users, label: "Refer & Earn", desc: "Get free gold", color: "bg-emerald-500/10", iconColor: "text-emerald-500", path: "/refer" },
             { icon: UserCheck, label: "Nominee", desc: "Add nominee", color: "bg-rose-500/10", iconColor: "text-rose-500", path: "/nominees" },
             { icon: Gift, label: "Gift Gold", desc: "Send to friends", color: "bg-primary/10", iconColor: "text-primary", path: "/gift" },
           ].map((item) => (
