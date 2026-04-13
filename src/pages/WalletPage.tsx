@@ -5,7 +5,7 @@ import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, 
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useKYC } from "@/hooks/useKYC";
-import { Button } from "@/components/ui/button";
+
 
 const WalletPage = () => {
   const { balance, transactions, addFunds, withdraw, isNewUser } = useWallet();
