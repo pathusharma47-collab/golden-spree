@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingUp, ArrowDownRight, Gift, Coins, Calendar, Zap, RotateCw, Users, UserCheck, ChevronRight, Sparkles } from "lucide-react";
+import { TrendingUp, ArrowDownRight, Gift, Gem, CalendarCheck, Zap, RefreshCw, UserPlus, ShieldCheck, ChevronRight, Sparkles, CircleDollarSign, Landmark } from "lucide-react";
 import BannerCarousel from "@/components/BannerCarousel";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,7 +58,7 @@ const Dashboard = () => {
         <div className="relative">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-lg gold-gradient flex items-center justify-center">
-              <Coins size={14} className="text-primary-foreground" />
+              <Gem size={14} className="text-primary-foreground" />
             </div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Gold Locker</p>
           </div>
@@ -166,7 +166,7 @@ const Dashboard = () => {
         <div className="glass-card p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-              <Calendar size={14} className="text-emerald-500" />
+              <CalendarCheck size={14} className="text-emerald-500" />
             </div>
             <p className="text-xs font-semibold text-foreground">Daily Save</p>
           </div>
@@ -181,7 +181,7 @@ const Dashboard = () => {
         <div className="glass-card p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-              <RotateCw size={14} className="text-primary" />
+              <RefreshCw size={14} className="text-primary" />
             </div>
             <p className="text-xs font-semibold text-foreground">Auto Save</p>
           </div>
@@ -201,11 +201,11 @@ const Dashboard = () => {
         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 font-semibold">More Features</p>
         <div className="grid grid-cols-3 gap-2.5">
           {[
-            { icon: RotateCw, label: "Spins", desc: "Win gold daily", color: "bg-amber-500/10", iconColor: "text-amber-500", path: "/spin" },
-            { icon: Calendar, label: "Weekly Save", desc: "₹200/week", color: "bg-blue-500/10", iconColor: "text-blue-500", path: "/sip" },
-            { icon: Coins, label: "Monthly", desc: "₹1000/mo", color: "bg-violet-500/10", iconColor: "text-violet-500", path: "/sip" },
-            { icon: Users, label: "Refer & Earn", desc: "Get free gold", color: "bg-emerald-500/10", iconColor: "text-emerald-500", path: "/refer" },
-            { icon: UserCheck, label: "Nominee", desc: "Add nominee", color: "bg-rose-500/10", iconColor: "text-rose-500", path: "/nominees" },
+            { icon: Sparkles, label: "Spins", desc: "Win gold daily", color: "bg-amber-500/10", iconColor: "text-amber-500", path: "/spin" },
+            { icon: CalendarCheck, label: "Weekly Save", desc: "₹200/week", color: "bg-blue-500/10", iconColor: "text-blue-500", path: "/sip" },
+            { icon: CircleDollarSign, label: "Monthly", desc: "₹1000/mo", color: "bg-violet-500/10", iconColor: "text-violet-500", path: "/sip" },
+            { icon: UserPlus, label: "Refer & Earn", desc: "Get free gold", color: "bg-emerald-500/10", iconColor: "text-emerald-500", path: "/refer" },
+            { icon: ShieldCheck, label: "Nominee", desc: "Add nominee", color: "bg-rose-500/10", iconColor: "text-rose-500", path: "/nominees" },
             { icon: Gift, label: "Gift Gold", desc: "Send to friends", color: "bg-primary/10", iconColor: "text-primary", path: "/gift" },
           ].map((item) => (
             <button
@@ -233,7 +233,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl silver-gradient flex items-center justify-center">
-              <Coins size={18} className="text-primary-foreground" />
+              <Landmark size={18} className="text-primary-foreground" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground font-semibold uppercase">Silver Locker</p>
