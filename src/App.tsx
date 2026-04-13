@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import SpinWheelScreen from "./pages/SpinWheelScreen";
 import KYCScreen from "./pages/KYCScreen";
 import NomineeScreen from "./pages/NomineeScreen";
+import ReferScreen from "./pages/ReferScreen";
 import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const AppRoutes = () => {
           <Route path="/spin" element={<ProtectedRoute><SpinWheelScreen /></ProtectedRoute>} />
           <Route path="/kyc" element={<ProtectedRoute><KYCScreen /></ProtectedRoute>} />
           <Route path="/nominees" element={<ProtectedRoute><NomineeScreen /></ProtectedRoute>} />
+          <Route path="/refer" element={<ProtectedRoute><ReferScreen /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
