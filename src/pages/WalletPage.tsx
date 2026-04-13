@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
-import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles, ShieldCheck, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useKYC } from "@/hooks/useKYC";
-import { Button } from "@/components/ui/button";
+
 
 const WalletPage = () => {
   const { balance, transactions, addFunds, withdraw, isNewUser } = useWallet();
@@ -30,43 +30,15 @@ const WalletPage = () => {
     setMode(null);
   };
 
-  if (kycLoading) {
-    return (
-      <div className="px-5 pt-12 pb-28 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 size={32} className="animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground mt-3">Checking KYC status...</p>
-      </div>
-    );
-  }
 
-  if (!isVerified) {
-    return (
-      <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)} className="text-muted-foreground mb-4">
-          <ArrowLeft size={22} />
-        </motion.button>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 flex flex-col items-center text-center mt-8"
-        >
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <ShieldCheck size={32} className="text-primary" />
-          </div>
-          <h2 className="font-display text-xl font-bold text-foreground mb-2">KYC Required</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Complete your KYC verification to enable wallet features like adding funds, investing, and withdrawals.
-          </p>
-          <Button
-            onClick={() => navigate("/kyc")}
-            className="w-full gold-gradient gold-glow text-primary-foreground font-semibold rounded-2xl py-3"
-          >
-            <ShieldCheck size={16} className="mr-2" /> Complete KYC Now
-          </Button>
-        </motion.div>
-      </div>
-    );
-  }
+  const handleWithdrawClick = () => {
+    if (!isVerified) {
+      toast.error("Complete KYC to withdraw funds");
+      navigate("/kyc");
+      return;
+    }
+    setMode(mode === "withdraw" ? null : "withdraw");
+  };
 
   return (
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
@@ -128,7 +100,7 @@ const WalletPage = () => {
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={() => setMode(mode === "withdraw" ? null : "withdraw")}
+          onClick={handleWithdrawClick}
           className={`py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
             mode === "withdraw"
               ? "bg-destructive text-destructive-foreground"
