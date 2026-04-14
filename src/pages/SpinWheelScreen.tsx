@@ -375,7 +375,44 @@ const SpinWheelScreen = () => {
         </ul>
       </div>
 
-      {/* Result Modal */}
+      {/* Reward History */}
+      {rewardHistory.length > 0 && (
+        <div className="glass-card p-4 mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <History size={16} className="text-primary" />
+            <p className="text-xs font-semibold text-foreground">Recent Rewards</p>
+          </div>
+          <div className="space-y-2">
+            {rewardHistory.map((entry, i) => {
+              const date = new Date(entry.date);
+              const timeStr = date.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) +
+                " · " + date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+              return (
+                <div key={i} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                  <span className="text-base">{entry.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{entry.label}</p>
+                    <p className="text-[10px] text-muted-foreground">{timeStr}</p>
+                  </div>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                    entry.type === "cash" ? "bg-primary/10 text-primary" :
+                    entry.type === "gold" ? "bg-amber-100 text-amber-700" :
+                    entry.type === "silver" ? "bg-gray-100 text-gray-600" :
+                    entry.type === "retry" ? "bg-primary/10 text-primary" :
+                    "bg-muted text-muted-foreground"
+                  }`}>
+                    {entry.type === "cash" ? "Cashback" :
+                     entry.type === "gold" ? "Gold" :
+                     entry.type === "silver" ? "Silver" :
+                     entry.type === "retry" ? "Bonus Spin" : "No Luck"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <AnimatePresence>
         {showResult && result && (
           <motion.div
