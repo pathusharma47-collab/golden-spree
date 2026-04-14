@@ -34,6 +34,7 @@ const SpinWheelScreen = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const spinKey = user ? `${SPIN_KEY_PREFIX}${user.email}` : "";
+  const historyKey = user ? `${REWARD_HISTORY_KEY}${user.email}` : "";
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<typeof SEGMENTS[0] | null>(null);
@@ -42,6 +43,11 @@ const SpinWheelScreen = () => {
   const [timeLeft, setTimeLeft] = useState("");
   const [spinsLeft, setSpinsLeft] = useState(1);
   const [activeLights, setActiveLights] = useState(0);
+  const [rewardHistory, setRewardHistory] = useState<RewardEntry[]>(() => {
+    if (!user) return [];
+    const stored = localStorage.getItem(`${REWARD_HISTORY_KEY}${user.email}`);
+    return stored ? JSON.parse(stored) : [];
+  });
 
   // Animated lights
   useEffect(() => {
