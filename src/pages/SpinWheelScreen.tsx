@@ -1,19 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sparkles, Gift, X } from "lucide-react";
+import { ArrowLeft, Sparkles, Gift, X, RotateCcw, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
 
 const SEGMENTS = [
-  { label: "0.001g Gold", value: 0.001, color: "hsl(43, 72%, 48%)", textColor: "#fff" },
-  { label: "₹5 Cashback", value: 5, color: "hsl(220, 15%, 93%)", textColor: "#333" },
-  { label: "0.005g Gold", value: 0.005, color: "hsl(43, 80%, 60%)", textColor: "#fff" },
-  { label: "Better Luck", value: 0, color: "hsl(220, 15%, 85%)", textColor: "#555" },
-  { label: "₹10 Cashback", value: 10, color: "hsl(43, 72%, 48%)", textColor: "#fff" },
-  { label: "0.002g Gold", value: 0.002, color: "hsl(220, 15%, 93%)", textColor: "#333" },
-  { label: "₹2 Cashback", value: 2, color: "hsl(43, 65%, 35%)", textColor: "#fff" },
-  { label: "Try Again", value: 0, color: "hsl(220, 15%, 85%)", textColor: "#555" },
+  { label: "0.001g Gold", value: 0.001, color: "hsl(43, 72%, 48%)", textColor: "#fff", type: "gold" },
+  { label: "₹5 Cashback", value: 5, color: "hsl(220, 15%, 93%)", textColor: "#333", type: "cash" },
+  { label: "0.005g Gold", value: 0.005, color: "hsl(43, 80%, 60%)", textColor: "#fff", type: "gold" },
+  { label: "Better Luck", value: 0, color: "hsl(220, 15%, 85%)", textColor: "#555", type: "none" },
+  { label: "₹10 Cashback", value: 10, color: "hsl(43, 72%, 48%)", textColor: "#fff", type: "cash" },
+  { label: "0.002g Gold", value: 0.002, color: "hsl(220, 15%, 93%)", textColor: "#333", type: "gold" },
+  { label: "₹2 Cashback", value: 2, color: "hsl(43, 65%, 35%)", textColor: "#fff", type: "cash" },
+  { label: "Try Again", value: 0, color: "hsl(160, 60%, 45%)", textColor: "#fff", type: "retry" },
 ];
 
 const SPIN_KEY_PREFIX = "spin_last_";
@@ -31,8 +31,8 @@ const SpinWheelScreen = () => {
   const [showResult, setShowResult] = useState(false);
   const [canSpin, setCanSpin] = useState(true);
   const [timeLeft, setTimeLeft] = useState("");
+  const [spinsLeft, setSpinsLeft] = useState(1);
 
-  // Check if user can spin today
   useEffect(() => {
     if (!spinKey) return;
     const checkSpin = () => {
@@ -64,25 +64,38 @@ const SpinWheelScreen = () => {
     if (!ctx) return;
     const size = canvas.width;
     const center = size / 2;
-    const radius = center - 8;
+    const radius = center - 10;
     const segAngle = (2 * Math.PI) / SEGMENTS.length;
 
     ctx.clearRect(0, 0, size, size);
+
+    // Outer ring shadow
+    ctx.beginPath();
+    ctx.arc(center, center, radius + 6, 0, 2 * Math.PI);
+    ctx.fillStyle = "hsla(43, 72%, 48%, 0.15)";
+    ctx.fill();
 
     SEGMENTS.forEach((seg, i) => {
       const start = i * segAngle;
       const end = start + segAngle;
 
-      // Segment
       ctx.beginPath();
       ctx.moveTo(center, center);
       ctx.arc(center, center, radius, start, end);
       ctx.closePath();
       ctx.fillStyle = seg.color;
       ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.3)";
+      ctx.strokeStyle = "rgba(255,255,255,0.4)";
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      // Icon dots on segment edges
+      const dotAngle = start + segAngle / 2;
+      const dotR = radius - 8;
+      ctx.beginPath();
+      ctx.arc(center + dotR * Math.cos(dotAngle), center + dotR * Math.sin(dotAngle), 2, 0, 2 * Math.PI);
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.fill();
 
       // Text
       ctx.save();
@@ -91,30 +104,39 @@ const SpinWheelScreen = () => {
       ctx.textAlign = "right";
       ctx.fillStyle = seg.textColor;
       ctx.font = "bold 11px Inter, sans-serif";
-      ctx.fillText(seg.label, radius - 16, 4);
+      ctx.fillText(seg.label, radius - 18, 4);
       ctx.restore();
     });
 
-    // Center circle
+    // Outer ring
     ctx.beginPath();
-    ctx.arc(center, center, 24, 0, 2 * Math.PI);
-    ctx.fillStyle = "hsl(43, 72%, 48%)";
+    ctx.arc(center, center, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = "hsl(43, 72%, 48%)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Center circle with gradient
+    const gradient = ctx.createRadialGradient(center, center, 4, center, center, 28);
+    gradient.addColorStop(0, "hsl(43, 80%, 60%)");
+    gradient.addColorStop(1, "hsl(43, 72%, 42%)");
+    ctx.beginPath();
+    ctx.arc(center, center, 28, 0, 2 * Math.PI);
+    ctx.fillStyle = gradient;
     ctx.fill();
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.fillStyle = "#fff";
-    ctx.font = "bold 10px Inter";
+    ctx.font = "bold 11px Inter";
     ctx.textAlign = "center";
     ctx.fillText("SPIN", center, center + 4);
   }, []);
 
   const handleSpin = () => {
-    if (spinning || !canSpin) return;
+    if (spinning || (!canSpin && spinsLeft <= 0)) return;
     setSpinning(true);
     setShowResult(false);
 
-    // Weighted random - higher chance for small rewards
     const weights = [15, 20, 5, 25, 3, 12, 15, 5];
     const totalWeight = weights.reduce((a, b) => a + b, 0);
     let rand = Math.random() * totalWeight;
@@ -125,35 +147,46 @@ const SpinWheelScreen = () => {
     }
 
     const segAngle = 360 / SEGMENTS.length;
-    // Calculate target: align winning segment to top (270° is top with pointer at top)
     const targetAngle = 360 - (winIndex * segAngle + segAngle / 2);
-    const spins = 5 + Math.floor(Math.random() * 3); // 5-7 full rotations
+    const spins = 5 + Math.floor(Math.random() * 3);
     const finalRotation = rotation + spins * 360 + targetAngle - (rotation % 360);
 
     setRotation(finalRotation);
 
     setTimeout(() => {
       setSpinning(false);
-      setResult(SEGMENTS[winIndex]);
+      const won = SEGMENTS[winIndex];
+      setResult(won);
       setShowResult(true);
 
-      // Save spin time
-      if (spinKey) localStorage.setItem(spinKey, new Date().toISOString());
-      setCanSpin(false);
+      if (won.type === "retry") {
+        // "Try Again" = grant a free bonus spin, don't save spin time
+        setSpinsLeft((prev) => prev + 1);
+      } else {
+        // Consume a spin
+        setSpinsLeft((prev) => {
+          const next = prev - 1;
+          if (next <= 0) {
+            // Save spin time only when all spins used
+            if (spinKey) localStorage.setItem(spinKey, new Date().toISOString());
+            setCanSpin(false);
+          }
+          return next;
+        });
 
-      // Apply reward to wallet
-      const won = SEGMENTS[winIndex];
-      if (won.value > 0) {
-        if (won.label.includes("Cashback")) {
-          addFunds(won.value);
-        } else if (won.label.includes("Gold")) {
-          // Credit gold value in rupees (value is grams, approximate ₹ equivalent)
-          // For now credit the rupee equivalent based on a rough rate
-          addFunds(won.value * 7150); // ~₹7150/g for 24K gold
+        // Apply reward
+        if (won.value > 0) {
+          if (won.type === "cash") {
+            addFunds(won.value);
+          } else if (won.type === "gold") {
+            addFunds(won.value * 7150);
+          }
         }
       }
     }, 4000);
   };
+
+  const isSpinnable = (canSpin && spinsLeft > 0) || spinsLeft > 1;
 
   return (
     <motion.div
@@ -171,46 +204,65 @@ const SpinWheelScreen = () => {
           <h1 className="font-display text-xl font-bold text-foreground">Daily Spin</h1>
           <p className="text-xs text-muted-foreground">Win gold & cashback rewards every day!</p>
         </div>
-        <Sparkles size={20} className="text-primary ml-auto" />
+        <div className="ml-auto flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-full">
+          <Zap size={14} className="text-primary" />
+          <span className="text-xs font-bold text-primary">{spinsLeft} spin{spinsLeft !== 1 ? "s" : ""}</span>
+        </div>
       </div>
 
       {/* Spin Wheel */}
-      <div className="glass-card p-6 flex flex-col items-center">
+      <div className="glass-card p-6 flex flex-col items-center relative overflow-hidden">
+        {/* Decorative glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
         {/* Pointer */}
-        <div className="relative mb-2">
-          <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-t-[18px] border-l-transparent border-r-transparent border-t-primary mx-auto" />
+        <div className="relative mb-2 z-10">
+          <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-t-[22px] border-l-transparent border-r-transparent border-t-primary mx-auto drop-shadow-lg" />
         </div>
 
         {/* Wheel */}
-        <div className="relative">
+        <div className="relative z-10">
           <motion.div
             animate={{ rotate: rotation }}
             transition={{ duration: 4, ease: [0.17, 0.67, 0.12, 0.99] }}
-            className="w-[280px] h-[280px]"
+            className="w-[290px] h-[290px]"
           >
-            <canvas ref={canvasRef} width={280} height={280} className="w-full h-full" />
+            <canvas ref={canvasRef} width={290} height={290} className="w-full h-full" />
           </motion.div>
         </div>
 
         {/* Spin Button */}
         <button
           onClick={handleSpin}
-          disabled={spinning || !canSpin}
-          className={`mt-6 w-full py-3.5 rounded-2xl font-semibold text-sm transition-all active:scale-95 ${
-            canSpin && !spinning
+          disabled={spinning || !isSpinnable}
+          className={`mt-6 w-full py-3.5 rounded-2xl font-semibold text-sm transition-all active:scale-95 relative overflow-hidden ${
+            isSpinnable && !spinning
               ? "gold-gradient gold-glow text-primary-foreground"
               : "bg-muted text-muted-foreground cursor-not-allowed"
           }`}
         >
-          {spinning ? "Spinning..." : canSpin ? "🎰 Spin Now!" : `Next spin in ${timeLeft}`}
+          {spinning ? (
+            <span className="flex items-center justify-center gap-2">
+              <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                <RotateCcw size={16} />
+              </motion.span>
+              Spinning...
+            </span>
+          ) : isSpinnable ? (
+            `🎰 Spin Now!`
+          ) : (
+            `Next spin in ${timeLeft}`
+          )}
         </button>
 
         <p className="text-[10px] text-muted-foreground mt-2 text-center">
-          {canSpin ? "You have 1 free spin today" : "Come back tomorrow for another spin!"}
+          {isSpinnable
+            ? `You have ${spinsLeft} free spin${spinsLeft !== 1 ? "s" : ""} available`
+            : "Come back tomorrow for another spin!"}
         </p>
       </div>
 
-      {/* Reward History hint */}
+      {/* How it works */}
       <div className="glass-card p-4 mt-4">
         <div className="flex items-center gap-2 mb-2">
           <Gift size={16} className="text-primary" />
@@ -218,9 +270,9 @@ const SpinWheelScreen = () => {
         </div>
         <ul className="text-[11px] text-muted-foreground space-y-1">
           <li>• Spin the wheel once every day for free</li>
-          <li>• Win digital gold (added to your locker) or cashback</li>
+          <li>• Win digital gold or cashback rewards</li>
+          <li>• Land on <span className="text-emerald-500 font-semibold">Try Again</span> to get a bonus spin!</li>
           <li>• Cashback is added to your wallet instantly</li>
-          <li>• The more days you spin, the bigger rewards you unlock!</li>
         </ul>
       </div>
 
@@ -244,7 +296,17 @@ const SpinWheelScreen = () => {
               <button onClick={() => setShowResult(false)} className="absolute top-3 right-3 text-muted-foreground">
                 <X size={18} />
               </button>
-              {result.value > 0 ? (
+
+              {result.type === "retry" ? (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                    <RotateCcw size={28} className="text-emerald-500" />
+                  </div>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-1">🔄 Try Again!</h2>
+                  <p className="text-sm text-emerald-500 font-semibold">You earned a bonus spin!</p>
+                  <p className="text-xs text-muted-foreground mt-2">Close this and spin again — it's on us!</p>
+                </>
+              ) : result.value > 0 ? (
                 <>
                   <div className="w-16 h-16 rounded-full gold-gradient gold-glow flex items-center justify-center mx-auto mb-4">
                     <Sparkles size={28} className="text-primary-foreground" />
@@ -252,7 +314,7 @@ const SpinWheelScreen = () => {
                   <h2 className="font-display text-2xl font-bold text-foreground mb-1">🎉 You Won!</h2>
                   <p className="text-lg font-semibold text-primary">{result.label}</p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    {result.label.includes("Gold")
+                    {result.type === "gold"
                       ? "Gold has been added to your locker!"
                       : "Cashback added to your wallet!"}
                   </p>
@@ -262,7 +324,7 @@ const SpinWheelScreen = () => {
                   <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                     <Gift size={28} className="text-muted-foreground" />
                   </div>
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-1">{result.label} 🍀</h2>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-1">Better Luck! 🍀</h2>
                   <p className="text-xs text-muted-foreground mt-2">Come back tomorrow for another chance!</p>
                 </>
               )}
