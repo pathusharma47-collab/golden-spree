@@ -226,6 +226,17 @@ const SpinWheelScreen = () => {
           }
         }
       }
+
+      // Save to reward history
+      const entry: RewardEntry = {
+        label: won.label.replace("\n", " "),
+        icon: won.icon,
+        type: won.type,
+        date: new Date().toISOString(),
+      };
+      const updated = [entry, ...rewardHistory].slice(0, 5);
+      setRewardHistory(updated);
+      if (historyKey) localStorage.setItem(historyKey, JSON.stringify(updated));
     }, 4000);
   };
 
