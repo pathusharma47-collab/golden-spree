@@ -17,7 +17,15 @@ const SEGMENTS = [
 ];
 
 const SPIN_KEY_PREFIX = "spin_last_";
+const REWARD_HISTORY_KEY = "spin_rewards_";
 const LIGHT_COUNT = 24;
+
+interface RewardEntry {
+  label: string;
+  icon: string;
+  type: string;
+  date: string;
+}
 
 const SpinWheelScreen = () => {
   const navigate = useNavigate();
