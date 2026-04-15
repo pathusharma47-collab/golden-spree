@@ -35,8 +35,7 @@ const WalletPage = () => {
     const result = await initiatePayment(
       num,
       user?.name || "Customer",
-      user?.email || "",
-      user?.phone || ""
+      user?.email || ""
     );
 
     if (result.success) {
