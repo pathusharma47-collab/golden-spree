@@ -412,7 +412,5 @@ const WalletPage = () => {
   );
 };
 
-// Import needed for hapticWarning
-import { hapticWarning } from "@/utils/haptics";
 
 export default WalletPage;
