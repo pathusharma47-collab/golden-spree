@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useKYC } from "@/hooks/useKYC";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRazorpay } from "@/hooks/useRazorpay";
-import { hapticLight, hapticSuccess, hapticError, hapticHeavy } from "@/utils/haptics";
+import { hapticLight, hapticSuccess, hapticError, hapticHeavy, hapticWarning } from "@/utils/haptics";
 
 const WalletPage = () => {
   const { balance, transactions, addFunds, withdraw, isNewUser } = useWallet();
