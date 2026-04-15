@@ -1,55 +1,143 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
-import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles, Fingerprint, Loader2, CreditCard, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useKYC } from "@/hooks/useKYC";
-
+import { useAuth } from "@/contexts/AuthContext";
+import { useRazorpay } from "@/hooks/useRazorpay";
+import { hapticLight, hapticSuccess, hapticError, hapticHeavy } from "@/utils/haptics";
 
 const WalletPage = () => {
   const { balance, transactions, addFunds, withdraw, isNewUser } = useWallet();
   const navigate = useNavigate();
   const { isVerified, loading: kycLoading } = useKYC();
+  const { user } = useAuth();
+  const { loading: paymentLoading, initiatePayment, initiatePayout } = useRazorpay();
+
   const [mode, setMode] = useState<"add" | "withdraw" | null>(null);
   const [amount, setAmount] = useState("");
+  const [withdrawMode, setWithdrawMode] = useState<"wallet" | "upi" | "bank">("wallet");
+  const [upiId, setUpiId] = useState("");
+  const [bankDetails, setBankDetails] = useState({ account_number: "", ifsc: "", beneficiary_name: "" });
 
-  const handleSubmit = () => {
+  const handleAddFunds = async () => {
     const num = parseFloat(amount);
-    if (!num || num <= 0) { toast.error("Enter a valid amount"); return; }
+    if (!num || num <= 0) {
+      hapticError();
+      toast.error("Enter a valid amount");
+      return;
+    }
 
-    if (mode === "add") {
+    hapticHeavy();
+
+    const result = await initiatePayment(
+      num,
+      user?.name || "Customer",
+      user?.email || "",
+      user?.phone || ""
+    );
+
+    if (result.success) {
       addFunds(num);
-      toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`);
-    } else if (mode === "withdraw") {
+      hapticSuccess();
+      toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`, {
+        description: `Payment ID: ${result.paymentId}`,
+      });
+      setAmount("");
+      setMode(null);
+    } else if (result.error !== "Payment cancelled") {
+      hapticError();
+      toast.error("Payment failed", { description: result.error });
+    }
+  };
+
+  const handleWithdraw = async () => {
+    const num = parseFloat(amount);
+    if (!num || num <= 0) {
+      hapticError();
+      toast.error("Enter a valid amount");
+      return;
+    }
+    if (num > balance) {
+      hapticError();
+      toast.error("Insufficient balance");
+      return;
+    }
+
+    hapticHeavy();
+
+    if (withdrawMode === "wallet") {
+      // Just deduct from wallet (for later use)
       const ok = withdraw(num);
-      if (!ok) { toast.error("Insufficient balance"); return; }
-      toast.success(`₹${num.toLocaleString("en-IN")} withdrawn`);
+      if (ok) {
+        hapticSuccess();
+        toast.success(`₹${num.toLocaleString("en-IN")} withdrawn to wallet`);
+      }
+    } else if (withdrawMode === "upi") {
+      if (!upiId) {
+        hapticError();
+        toast.error("Enter your UPI ID");
+        return;
+      }
+      const result = await initiatePayout(num, "UPI", { upi_id: upiId });
+      if (result.success) {
+        withdraw(num);
+        hapticSuccess();
+        toast.success(`₹${num.toLocaleString("en-IN")} sent to ${upiId}`, {
+          description: `Payout ID: ${result.payoutId}`,
+        });
+      } else {
+        hapticError();
+        toast.error("Payout failed", { description: result.error });
+        return;
+      }
+    } else if (withdrawMode === "bank") {
+      if (!bankDetails.account_number || !bankDetails.ifsc || !bankDetails.beneficiary_name) {
+        hapticError();
+        toast.error("Fill all bank details");
+        return;
+      }
+      const result = await initiatePayout(num, "IMPS", bankDetails);
+      if (result.success) {
+        withdraw(num);
+        hapticSuccess();
+        toast.success(`₹${num.toLocaleString("en-IN")} transferred to bank`, {
+          description: `Payout ID: ${result.payoutId}`,
+        });
+      } else {
+        hapticError();
+        toast.error("Transfer failed", { description: result.error });
+        return;
+      }
     }
     setAmount("");
     setMode(null);
+    setUpiId("");
+    setBankDetails({ account_number: "", ifsc: "", beneficiary_name: "" });
   };
-
 
   const handleWithdrawClick = () => {
     if (!isVerified) {
+      hapticWarning();
       toast.error("Complete KYC to withdraw funds");
       navigate("/kyc");
       return;
     }
+    hapticLight();
     setMode(mode === "withdraw" ? null : "withdraw");
   };
 
   return (
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
-      <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)} className="text-muted-foreground mb-4">
+      <motion.button whileTap={{ scale: 0.9 }} onClick={() => { hapticLight(); navigate(-1); }} className="text-muted-foreground mb-4">
         <ArrowLeft size={22} />
       </motion.button>
 
       <h1 className="font-display text-2xl font-bold text-foreground">Wallet</h1>
       <p className="text-sm text-muted-foreground mt-1">Manage your funds</p>
 
-      {/* Welcome Bonus Banner */}
       {isNewUser && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -58,9 +146,7 @@ const WalletPage = () => {
           className="mt-4 gold-gradient rounded-xl px-4 py-3 flex items-center gap-3"
         >
           <Sparkles size={18} className="text-primary-foreground" />
-          <p className="text-sm font-semibold text-primary-foreground">
-            ₹100 Welcome Bonus Added! 🎁
-          </p>
+          <p className="text-sm font-semibold text-primary-foreground">₹100 Welcome Bonus Added! 🎁</p>
         </motion.div>
       )}
 
@@ -89,11 +175,9 @@ const WalletPage = () => {
       >
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={() => setMode(mode === "add" ? null : "add")}
+          onClick={() => { hapticLight(); setMode(mode === "add" ? null : "add"); }}
           className={`py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
-            mode === "add"
-              ? "gold-gradient text-primary-foreground gold-glow"
-              : "glass-card text-foreground"
+            mode === "add" ? "gold-gradient text-primary-foreground gold-glow" : "glass-card text-foreground"
           }`}
         >
           <Plus size={18} /> Add Funds
@@ -102,18 +186,16 @@ const WalletPage = () => {
           whileTap={{ scale: 0.95 }}
           onClick={handleWithdrawClick}
           className={`py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
-            mode === "withdraw"
-              ? "bg-destructive text-destructive-foreground"
-              : "glass-card text-foreground"
+            mode === "withdraw" ? "bg-destructive text-destructive-foreground" : "glass-card text-foreground"
           }`}
         >
           <ArrowDownToLine size={18} /> Withdraw
         </motion.button>
       </motion.div>
 
-      {/* Amount Input Panel */}
+      {/* Add Funds Panel */}
       <AnimatePresence>
-        {mode && (
+        {mode === "add" && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -121,9 +203,7 @@ const WalletPage = () => {
             className="overflow-hidden"
           >
             <div className="glass-card p-5 mt-4 space-y-4">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider">
-                {mode === "add" ? "Amount to Add (₹)" : "Amount to Withdraw (₹)"}
-              </label>
+              <label className="text-xs text-muted-foreground uppercase tracking-wider">Amount to Add (₹)</label>
               <input
                 type="number"
                 value={amount}
@@ -137,7 +217,7 @@ const WalletPage = () => {
                   <motion.button
                     key={a}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setAmount(String(a))}
+                    onClick={() => { hapticLight(); setAmount(String(a)); }}
                     className="flex-1 py-2 rounded-lg border border-border/50 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
                   >
                     ₹{a}
@@ -146,14 +226,144 @@ const WalletPage = () => {
               </div>
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={handleSubmit}
-                className={`w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 ${
-                  mode === "add"
-                    ? "gold-gradient text-primary-foreground gold-glow"
-                    : "bg-destructive text-destructive-foreground"
-                }`}
+                onClick={handleAddFunds}
+                disabled={paymentLoading}
+                className="w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 gold-gradient text-primary-foreground gold-glow disabled:opacity-50"
               >
-                {mode === "add" ? "Add Funds" : "Withdraw"}
+                {paymentLoading ? (
+                  <><Loader2 size={18} className="animate-spin" /> Processing...</>
+                ) : (
+                  <><CreditCard size={18} /> Pay & Add Funds</>
+                )}
+              </motion.button>
+              <p className="text-[10px] text-center text-muted-foreground">Powered by Razorpay • Secure Payment</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Withdraw Panel */}
+      <AnimatePresence>
+        {mode === "withdraw" && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="glass-card p-5 mt-4 space-y-4">
+              <label className="text-xs text-muted-foreground uppercase tracking-wider">Amount to Withdraw (₹)</label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="w-full text-2xl font-display font-bold bg-transparent text-foreground outline-none placeholder:text-muted-foreground/30"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                {[500, 1000, 2000, 5000].map((a) => (
+                  <motion.button
+                    key={a}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => { hapticLight(); setAmount(String(a)); }}
+                    className="flex-1 py-2 rounded-lg border border-border/50 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
+                  >
+                    ₹{a}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Withdraw Method Selector */}
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Transfer To</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { hapticLight(); setWithdrawMode("upi"); }}
+                    className={`py-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                      withdrawMode === "upi" ? "bg-primary text-primary-foreground" : "glass-card text-foreground"
+                    }`}
+                  >
+                    <Fingerprint size={16} /> UPI
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { hapticLight(); setWithdrawMode("bank"); }}
+                    className={`py-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                      withdrawMode === "bank" ? "bg-primary text-primary-foreground" : "glass-card text-foreground"
+                    }`}
+                  >
+                    <Building2 size={16} /> Bank
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* UPI Input */}
+              <AnimatePresence>
+                {withdrawMode === "upi" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2"
+                  >
+                    <input
+                      type="text"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      placeholder="Enter UPI ID (e.g. name@upi)"
+                      className="w-full px-4 py-3 rounded-xl bg-muted/50 text-sm text-foreground outline-none placeholder:text-muted-foreground/50"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Bank Details */}
+              <AnimatePresence>
+                {withdrawMode === "bank" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2"
+                  >
+                    <input
+                      type="text"
+                      value={bankDetails.beneficiary_name}
+                      onChange={(e) => setBankDetails((d) => ({ ...d, beneficiary_name: e.target.value }))}
+                      placeholder="Account holder name"
+                      className="w-full px-4 py-3 rounded-xl bg-muted/50 text-sm text-foreground outline-none placeholder:text-muted-foreground/50"
+                    />
+                    <input
+                      type="text"
+                      value={bankDetails.account_number}
+                      onChange={(e) => setBankDetails((d) => ({ ...d, account_number: e.target.value }))}
+                      placeholder="Account number"
+                      className="w-full px-4 py-3 rounded-xl bg-muted/50 text-sm text-foreground outline-none placeholder:text-muted-foreground/50"
+                    />
+                    <input
+                      type="text"
+                      value={bankDetails.ifsc}
+                      onChange={(e) => setBankDetails((d) => ({ ...d, ifsc: e.target.value }))}
+                      placeholder="IFSC code"
+                      className="w-full px-4 py-3 rounded-xl bg-muted/50 text-sm text-foreground outline-none placeholder:text-muted-foreground/50"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleWithdraw}
+                disabled={paymentLoading}
+                className="w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 bg-destructive text-destructive-foreground disabled:opacity-50"
+              >
+                {paymentLoading ? (
+                  <><Loader2 size={18} className="animate-spin" /> Processing...</>
+                ) : (
+                  <>Withdraw to {withdrawMode === "upi" ? "UPI" : "Bank Account"}</>
+                )}
               </motion.button>
             </div>
           </motion.div>
@@ -202,5 +412,8 @@ const WalletPage = () => {
     </div>
   );
 };
+
+// Import needed for hapticWarning
+import { hapticWarning } from "@/utils/haptics";
 
 export default WalletPage;
