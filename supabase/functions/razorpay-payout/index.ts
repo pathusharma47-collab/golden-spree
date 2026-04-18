@@ -57,6 +57,7 @@ serve(async (req) => {
     });
 
     const contact = await contactRes.json();
+    console.log("Contact response status:", contactRes.status, "body:", JSON.stringify(contact));
     if (!contactRes.ok) {
       console.error("Contact creation failed:", contact);
       return new Response(
