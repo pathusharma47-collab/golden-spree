@@ -92,6 +92,7 @@ serve(async (req) => {
     });
 
     const fundAccount = await fundRes.json();
+    console.log("Fund account response status:", fundRes.status, "body:", JSON.stringify(fundAccount));
     if (!fundRes.ok) {
       console.error("Fund account creation failed:", fundAccount);
       return new Response(
