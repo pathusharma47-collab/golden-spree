@@ -102,24 +102,31 @@ serve(async (req) => {
     }
 
     // Create payout
+    const accountNumber = Deno.env.get("RAZORPAY_ACCOUNT_NUMBER") || "";
+    console.log("Using RazorpayX account_number length:", accountNumber.length, "starts with:", accountNumber.slice(0, 4));
+
+    const payoutPayload = {
+      account_number: accountNumber,
+      fund_account_id: fundAccount.id,
+      amount: amountInPaise,
+      currency: "INR",
+      mode: mode === "UPI" ? "UPI" : "IMPS",
+      purpose: "payout",
+      queue_if_low_balance: true,
+    };
+    console.log("Payout payload:", JSON.stringify(payoutPayload));
+
     const payoutRes = await fetch("https://api.razorpay.com/v1/payouts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Basic " + btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`),
       },
-      body: JSON.stringify({
-        account_number: Deno.env.get("RAZORPAY_ACCOUNT_NUMBER") || "",
-        fund_account_id: fundAccount.id,
-        amount: amountInPaise,
-        currency: "INR",
-        mode: mode === "UPI" ? "UPI" : "IMPS",
-        purpose: "payout",
-        queue_if_low_balance: true,
-      }),
+      body: JSON.stringify(payoutPayload),
     });
 
     const payout = await payoutRes.json();
+    console.log("Payout response status:", payoutRes.status, "body:", JSON.stringify(payout));
     if (!payoutRes.ok) {
       console.error("Payout creation failed:", payout);
       return new Response(
