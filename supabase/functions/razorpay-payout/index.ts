@@ -57,7 +57,6 @@ serve(async (req) => {
     });
 
     const contact = await contactRes.json();
-    console.log("Contact response status:", contactRes.status, "body:", JSON.stringify(contact));
     if (!contactRes.ok) {
       console.error("Contact creation failed:", contact);
       return new Response(
@@ -92,7 +91,6 @@ serve(async (req) => {
     });
 
     const fundAccount = await fundRes.json();
-    console.log("Fund account response status:", fundRes.status, "body:", JSON.stringify(fundAccount));
     if (!fundRes.ok) {
       console.error("Fund account creation failed:", fundAccount);
       return new Response(
@@ -102,31 +100,24 @@ serve(async (req) => {
     }
 
     // Create payout
-    const accountNumber = Deno.env.get("RAZORPAY_ACCOUNT_NUMBER") || "";
-    console.log("Using RazorpayX account_number length:", accountNumber.length, "starts with:", accountNumber.slice(0, 4));
-
-    const payoutPayload = {
-      account_number: accountNumber,
-      fund_account_id: fundAccount.id,
-      amount: amountInPaise,
-      currency: "INR",
-      mode: mode === "UPI" ? "UPI" : "IMPS",
-      purpose: "payout",
-      queue_if_low_balance: true,
-    };
-    console.log("Payout payload:", JSON.stringify(payoutPayload));
-
     const payoutRes = await fetch("https://api.razorpay.com/v1/payouts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Basic " + btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`),
       },
-      body: JSON.stringify(payoutPayload),
+      body: JSON.stringify({
+        account_number: Deno.env.get("RAZORPAY_ACCOUNT_NUMBER") || "",
+        fund_account_id: fundAccount.id,
+        amount: amountInPaise,
+        currency: "INR",
+        mode: mode === "UPI" ? "UPI" : "IMPS",
+        purpose: "payout",
+        queue_if_low_balance: true,
+      }),
     });
 
     const payout = await payoutRes.json();
-    console.log("Payout response status:", payoutRes.status, "body:", JSON.stringify(payout));
     if (!payoutRes.ok) {
       console.error("Payout creation failed:", payout);
       return new Response(
