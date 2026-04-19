@@ -97,7 +97,7 @@ export const useRazorpay = () => {
                 if (verifyError || !verifyData?.verified) {
                   safeResolve({ success: false, error: "Payment verification failed" });
                 } else {
-                  safeResolve({ success: true, paymentId: response.razorpay_payment_id });
+                  safeResolve({ success: true, paymentId: response.razorpay_payment_id, orderId: response.razorpay_order_id });
                 }
               } catch (err: any) {
                 safeResolve({ success: false, error: err.message });
