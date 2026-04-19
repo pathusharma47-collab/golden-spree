@@ -43,33 +43,37 @@ const WalletPage = () => {
       user?.email || ""
     );
 
-    if (result.success) {
-      // Sync: wait for verify-payment to mark the order as success in DB
+    // Always sync if we have an orderId — even on "cancelled", the payment
+    // may have actually completed (iframe / 3DS redirect cases where the
+    // Razorpay handler callback never fires).
+    if (result.orderId) {
       setSyncingFunds(true);
-      let confirmed = true;
-      if (result.orderId) {
-        const tx = await waitForOrderSuccess(result.orderId);
-        if (tx && tx.status !== "success") confirmed = false;
-      }
+      const tx = await waitForOrderSuccess(result.orderId);
       setSyncingFunds(false);
 
-      if (!confirmed) {
+      if (tx?.status === "success") {
+        addFunds(num);
+        await refetchPayments();
+        hapticSuccess();
+        toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`, {
+          description: `Payment ID: ${tx.payment_id ?? result.paymentId ?? ""}`,
+        });
+        setAmount("");
+        setMode(null);
+        return;
+      }
+
+      if (result.success) {
+        // Razorpay said success but DB didn't confirm in time
         hapticError();
         toast.error("Payment could not be confirmed", {
           description: "If money was deducted it will be refunded.",
         });
         return;
       }
+    }
 
-      addFunds(num);
-      await refetchPayments();
-      hapticSuccess();
-      toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`, {
-        description: `Payment ID: ${result.paymentId}`,
-      });
-      setAmount("");
-      setMode(null);
-    } else if (result.error !== "Payment cancelled") {
+    if (result.error && result.error !== "Payment cancelled") {
       hapticError();
       toast.error("Payment failed", { description: result.error });
     }
