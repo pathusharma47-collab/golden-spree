@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
 import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles, Fingerprint, Loader2, CreditCard, Building2 } from "lucide-react";
@@ -27,6 +27,32 @@ const WalletPage = () => {
   const [syncingFunds, setSyncingFunds] = useState(false);
   const [selectedTx, setSelectedTx] = useState<PaymentTransaction | null>(null);
 
+  // Safety net: when WalletPage mounts (e.g. after Razorpay redirect),
+  // forcibly clean up any leftover Razorpay body styles / overlays so the
+  // page can never be left blank.
+  useEffect(() => {
+    const cleanup = () => {
+      try {
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.height = "";
+        document.body.style.paddingRight = "";
+        document.documentElement.style.overflow = "";
+        document
+          .querySelectorAll(".razorpay-container, .razorpay-backdrop, .razorpay-checkout-frame")
+          .forEach((el) => el.remove());
+      } catch (_) {
+        /* noop */
+      }
+    };
+    cleanup();
+    // Also run a moment later in case Razorpay re-applies styles asynchronously
+    const t = setTimeout(cleanup, 500);
+    return () => clearTimeout(t);
+  }, []);
+
   const handleAddFunds = async () => {
     const num = parseFloat(amount);
     if (!num || num <= 0) {
@@ -43,33 +69,37 @@ const WalletPage = () => {
       user?.email || ""
     );
 
-    if (result.success) {
-      // Sync: wait for verify-payment to mark the order as success in DB
+    // Always sync if we have an orderId — even on "cancelled", the payment
+    // may have actually completed (iframe / 3DS redirect cases where the
+    // Razorpay handler callback never fires).
+    if (result.orderId) {
       setSyncingFunds(true);
-      let confirmed = true;
-      if (result.orderId) {
-        const tx = await waitForOrderSuccess(result.orderId);
-        if (tx && tx.status !== "success") confirmed = false;
-      }
+      const tx = await waitForOrderSuccess(result.orderId);
       setSyncingFunds(false);
 
-      if (!confirmed) {
+      if (tx?.status === "success") {
+        addFunds(num);
+        await refetchPayments();
+        hapticSuccess();
+        toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`, {
+          description: `Payment ID: ${tx.payment_id ?? result.paymentId ?? ""}`,
+        });
+        setAmount("");
+        setMode(null);
+        return;
+      }
+
+      if (result.success) {
+        // Razorpay said success but DB didn't confirm in time
         hapticError();
         toast.error("Payment could not be confirmed", {
           description: "If money was deducted it will be refunded.",
         });
         return;
       }
+    }
 
-      addFunds(num);
-      await refetchPayments();
-      hapticSuccess();
-      toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`, {
-        description: `Payment ID: ${result.paymentId}`,
-      });
-      setAmount("");
-      setMode(null);
-    } else if (result.error !== "Payment cancelled") {
+    if (result.error && result.error !== "Payment cancelled") {
       hapticError();
       toast.error("Payment failed", { description: result.error });
     }

@@ -111,7 +111,9 @@ export const useRazorpay = () => {
             theme: { color: "#D4A853" },
             modal: {
               ondismiss: () => {
-                safeResolve({ success: false, error: "Payment cancelled" });
+                // Even on dismiss, return the orderId so the caller can poll
+                // the server (handles iframe/redirect cases where handler never fires).
+                safeResolve({ success: false, error: "Payment cancelled", orderId: orderData.order_id });
               },
               escape: true,
               backdropclose: false,
