@@ -249,10 +249,12 @@ const WalletPage = () => {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAddFunds}
-                disabled={paymentLoading}
+                disabled={paymentLoading || syncingFunds}
                 className="w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 gold-gradient text-primary-foreground gold-glow disabled:opacity-50"
               >
-                {paymentLoading ? (
+                {syncingFunds ? (
+                  <><Loader2 size={18} className="animate-spin" /> Confirming payment...</>
+                ) : paymentLoading ? (
                   <><Loader2 size={18} className="animate-spin" /> Processing...</>
                 ) : (
                   <><CreditCard size={18} /> Pay & Add Funds</>
