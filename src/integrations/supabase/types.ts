@@ -149,6 +149,54 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          method: string | null
+          notes: Json | null
+          order_id: string
+          payment_id: string | null
+          signature: string | null
+          status: string
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          method?: string | null
+          notes?: Json | null
+          order_id: string
+          payment_id?: string | null
+          signature?: string | null
+          status?: string
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          method?: string | null
+          notes?: Json | null
+          order_id?: string
+          payment_id?: string | null
+          signature?: string | null
+          status?: string
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
