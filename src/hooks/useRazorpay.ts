@@ -36,7 +36,7 @@ export const useRazorpay = () => {
       userName: string,
       userEmail: string,
       userPhone?: string
-    ): Promise<{ success: boolean; paymentId?: string; error?: string }> => {
+    ): Promise<{ success: boolean; paymentId?: string; orderId?: string; error?: string }> => {
       setLoading(true);
       try {
         const loaded = await loadRazorpayScript();
@@ -47,7 +47,7 @@ export const useRazorpay = () => {
         // Create order via edge function
         const { data: orderData, error: orderError } = await supabase.functions.invoke(
           "razorpay-create-order",
-          { body: { amount } }
+          { body: { amount, user_email: userEmail, description: `Add ₹${amount} to wallet` } }
         );
 
         if (orderError || !orderData?.order_id) {
@@ -57,7 +57,7 @@ export const useRazorpay = () => {
         // Open Razorpay checkout
         return new Promise((resolve) => {
           let settled = false;
-          const safeResolve = (result: { success: boolean; paymentId?: string; error?: string }) => {
+          const safeResolve = (result: { success: boolean; paymentId?: string; orderId?: string; error?: string }) => {
             if (settled) return;
             settled = true;
             // Defensive: restore body styles in case Razorpay didn't clean up
@@ -97,7 +97,7 @@ export const useRazorpay = () => {
                 if (verifyError || !verifyData?.verified) {
                   safeResolve({ success: false, error: "Payment verification failed" });
                 } else {
-                  safeResolve({ success: true, paymentId: response.razorpay_payment_id });
+                  safeResolve({ success: true, paymentId: response.razorpay_payment_id, orderId: response.razorpay_order_id });
                 }
               } catch (err: any) {
                 safeResolve({ success: false, error: err.message });
