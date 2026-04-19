@@ -394,12 +394,65 @@ const WalletPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Transaction History */}
+      {/* Razorpay Payment Transactions */}
       <div className="mt-6">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Wallet History</p>
+        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Payment History</p>
+        {paymentTxs.length === 0 ? (
+          <div className="text-center py-6 text-muted-foreground text-xs">
+            No payments yet. Tap a row below to view details.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {paymentTxs.map((tx, i) => {
+              const isSuccess = tx.status === "success";
+              const isFailed = tx.status === "failed";
+              return (
+                <motion.button
+                  key={tx.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => { hapticLight(); setSelectedTx(tx); }}
+                  className="w-full glass-card p-4 flex items-center gap-3 text-left"
+                >
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                    isSuccess ? "bg-emerald-500/10" : isFailed ? "bg-destructive/10" : "bg-muted"
+                  }`}>
+                    {isSuccess ? (
+                      <ArrowDownLeft size={16} className="text-emerald-500" />
+                    ) : isFailed ? (
+                      <ArrowUpRight size={16} className="text-destructive" />
+                    ) : (
+                      <Loader2 size={16} className="text-muted-foreground animate-spin" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {tx.description || "Razorpay Payment"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(tx.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} • {tx.status}
+                    </p>
+                  </div>
+                  <p className={`text-sm font-semibold ${
+                    isSuccess ? "text-emerald-500" : isFailed ? "text-destructive" : "text-muted-foreground"
+                  }`}>
+                    ₹{Number(tx.amount).toLocaleString("en-IN")}
+                  </p>
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Wallet Activity (local) */}
+      <div className="mt-6">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Wallet Activity</p>
         {transactions.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">
-            No transactions yet. Add funds to get started ✨
+            No activity yet. Add funds to get started ✨
           </div>
         ) : (
           <div className="space-y-2">
@@ -433,6 +486,12 @@ const WalletPage = () => {
           </div>
         )}
       </div>
+
+      <TransactionDetailsDialog
+        open={!!selectedTx}
+        onOpenChange={(o) => !o && setSelectedTx(null)}
+        transaction={selectedTx}
+      />
     </div>
   );
 };
