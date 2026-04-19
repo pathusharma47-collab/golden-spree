@@ -36,7 +36,7 @@ export const useRazorpay = () => {
       userName: string,
       userEmail: string,
       userPhone?: string
-    ): Promise<{ success: boolean; paymentId?: string; error?: string }> => {
+    ): Promise<{ success: boolean; paymentId?: string; orderId?: string; error?: string }> => {
       setLoading(true);
       try {
         const loaded = await loadRazorpayScript();
@@ -47,7 +47,7 @@ export const useRazorpay = () => {
         // Create order via edge function
         const { data: orderData, error: orderError } = await supabase.functions.invoke(
           "razorpay-create-order",
-          { body: { amount } }
+          { body: { amount, user_email: userEmail, description: `Add ₹${amount} to wallet` } }
         );
 
         if (orderError || !orderData?.order_id) {
