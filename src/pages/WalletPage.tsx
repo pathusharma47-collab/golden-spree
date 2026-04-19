@@ -8,6 +8,8 @@ import { useKYC } from "@/hooks/useKYC";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRazorpay } from "@/hooks/useRazorpay";
 import { hapticLight, hapticSuccess, hapticError, hapticHeavy, hapticWarning } from "@/utils/haptics";
+import { usePaymentTransactions, type PaymentTransaction } from "@/hooks/usePaymentTransactions";
+import { TransactionDetailsDialog } from "@/components/TransactionDetailsDialog";
 
 const WalletPage = () => {
   const { balance, transactions, addFunds, withdraw, isNewUser } = useWallet();
@@ -15,12 +17,15 @@ const WalletPage = () => {
   const { isVerified, loading: kycLoading } = useKYC();
   const { user } = useAuth();
   const { loading: paymentLoading, initiatePayment, initiatePayout } = useRazorpay();
+  const { transactions: paymentTxs, refetch: refetchPayments, waitForOrderSuccess } = usePaymentTransactions();
 
   const [mode, setMode] = useState<"add" | "withdraw" | null>(null);
   const [amount, setAmount] = useState("");
   const [withdrawMode, setWithdrawMode] = useState<"wallet" | "upi" | "bank">("wallet");
   const [upiId, setUpiId] = useState("");
   const [bankDetails, setBankDetails] = useState({ account_number: "", ifsc: "", beneficiary_name: "" });
+  const [syncingFunds, setSyncingFunds] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<PaymentTransaction | null>(null);
 
   const handleAddFunds = async () => {
     const num = parseFloat(amount);
