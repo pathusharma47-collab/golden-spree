@@ -44,7 +44,25 @@ const WalletPage = () => {
     );
 
     if (result.success) {
+      // Sync: wait for verify-payment to mark the order as success in DB
+      setSyncingFunds(true);
+      let confirmed = true;
+      if (result.orderId) {
+        const tx = await waitForOrderSuccess(result.orderId);
+        if (tx && tx.status !== "success") confirmed = false;
+      }
+      setSyncingFunds(false);
+
+      if (!confirmed) {
+        hapticError();
+        toast.error("Payment could not be confirmed", {
+          description: "If money was deducted it will be refunded.",
+        });
+        return;
+      }
+
       addFunds(num);
+      await refetchPayments();
       hapticSuccess();
       toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`, {
         description: `Payment ID: ${result.paymentId}`,
