@@ -56,6 +56,30 @@ export const useRazorpay = () => {
 
         // Open Razorpay checkout
         return new Promise((resolve) => {
+          let settled = false;
+          const safeResolve = (result: { success: boolean; paymentId?: string; error?: string }) => {
+            if (settled) return;
+            settled = true;
+            // Defensive: restore body styles in case Razorpay didn't clean up
+            // (happens occasionally inside iframe/preview contexts and causes a "blank" screen)
+            try {
+              document.body.style.overflow = "";
+              document.body.style.position = "";
+              document.body.style.top = "";
+              document.body.style.width = "";
+              document.body.style.height = "";
+              document.body.style.paddingRight = "";
+              document.documentElement.style.overflow = "";
+              // Remove any leftover Razorpay containers
+              document
+                .querySelectorAll(".razorpay-container, .razorpay-backdrop")
+                .forEach((el) => el.remove());
+            } catch (_) {
+              /* noop */
+            }
+            resolve(result);
+          };
+
           const options = {
             key: orderData.key_id,
             amount: orderData.amount,
@@ -65,19 +89,18 @@ export const useRazorpay = () => {
             order_id: orderData.order_id,
             handler: async (response: RazorpayPaymentResult) => {
               try {
-                // Verify payment
                 const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
                   "razorpay-verify-payment",
                   { body: response }
                 );
 
                 if (verifyError || !verifyData?.verified) {
-                  resolve({ success: false, error: "Payment verification failed" });
+                  safeResolve({ success: false, error: "Payment verification failed" });
                 } else {
-                  resolve({ success: true, paymentId: response.razorpay_payment_id });
+                  safeResolve({ success: true, paymentId: response.razorpay_payment_id });
                 }
               } catch (err: any) {
-                resolve({ success: false, error: err.message });
+                safeResolve({ success: false, error: err.message });
               }
             },
             prefill: {
@@ -88,19 +111,27 @@ export const useRazorpay = () => {
             theme: { color: "#D4A853" },
             modal: {
               ondismiss: () => {
-                resolve({ success: false, error: "Payment cancelled" });
+                safeResolve({ success: false, error: "Payment cancelled" });
               },
+              escape: true,
+              backdropclose: false,
+              confirm_close: false,
             },
+            retry: { enabled: false },
           };
 
-          const rzp = new window.Razorpay(options);
-          rzp.on("payment.failed", (response: any) => {
-            resolve({
-              success: false,
-              error: response.error?.description || "Payment failed",
+          try {
+            const rzp = new window.Razorpay(options);
+            rzp.on("payment.failed", (response: any) => {
+              safeResolve({
+                success: false,
+                error: response.error?.description || "Payment failed",
+              });
             });
-          });
-          rzp.open();
+            rzp.open();
+          } catch (err: any) {
+            safeResolve({ success: false, error: err?.message || "Failed to open checkout" });
+          }
         });
       } catch (err: any) {
         return { success: false, error: err.message };
