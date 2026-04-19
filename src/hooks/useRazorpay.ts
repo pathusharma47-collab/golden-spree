@@ -57,7 +57,7 @@ export const useRazorpay = () => {
         // Open Razorpay checkout
         return new Promise((resolve) => {
           let settled = false;
-          const safeResolve = (result: { success: boolean; paymentId?: string; error?: string }) => {
+          const safeResolve = (result: { success: boolean; paymentId?: string; orderId?: string; error?: string }) => {
             if (settled) return;
             settled = true;
             // Defensive: restore body styles in case Razorpay didn't clean up
