@@ -27,32 +27,6 @@ const WalletPage = () => {
   const [syncingFunds, setSyncingFunds] = useState(false);
   const [selectedTx, setSelectedTx] = useState<PaymentTransaction | null>(null);
 
-  // Safety net: when WalletPage mounts (e.g. after Razorpay redirect),
-  // forcibly clean up any leftover Razorpay body styles / overlays so the
-  // page can never be left blank.
-  useEffect(() => {
-    const cleanup = () => {
-      try {
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        document.body.style.height = "";
-        document.body.style.paddingRight = "";
-        document.documentElement.style.overflow = "";
-        document
-          .querySelectorAll(".razorpay-container, .razorpay-backdrop, .razorpay-checkout-frame")
-          .forEach((el) => el.remove());
-      } catch (_) {
-        /* noop */
-      }
-    };
-    cleanup();
-    // Also run a moment later in case Razorpay re-applies styles asynchronously
-    const t = setTimeout(cleanup, 500);
-    return () => clearTimeout(t);
-  }, []);
-
   const handleAddFunds = async () => {
     const num = parseFloat(amount);
     if (!num || num <= 0) {
