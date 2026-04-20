@@ -49,6 +49,7 @@ const AppRoutes = () => {
           <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/index" element={<Navigate to="/" replace />} />
+          <Route path="/invest" element={<ProtectedRoute><InvestScreen /></ProtectedRoute>} />
           <Route path="/redeem" element={<ProtectedRoute><RedeemScreen /></ProtectedRoute>} />
           <Route path="/sip" element={<ProtectedRoute><SIPScreen /></ProtectedRoute>} />
           <Route path="/gift" element={<ProtectedRoute><GiftScreen /></ProtectedRoute>} />
