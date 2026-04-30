@@ -51,6 +51,47 @@ const Dashboard = () => {
         </button>
       </motion.div>
 
+      {/* Banner Carousel */}
+      <motion.div variants={itemVariants}>
+        <BannerCarousel />
+      </motion.div>
+
+      {/* Live Prices Compact */}
+      <motion.div variants={itemVariants} className="glass-card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+              <TrendingUp size={12} className="text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Live Rates</p>
+          </div>
+          <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+            </span>
+            <span className="text-[9px] font-semibold text-emerald-500 uppercase">Live</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="gold-gradient gold-glow rounded-xl p-2.5 text-center">
+            <p className="text-[9px] text-primary-foreground/70 font-semibold uppercase">Gold 24K</p>
+            <p className="text-xs font-bold text-primary-foreground mt-0.5">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}<span className="text-[8px] font-normal">/g</span></p>
+          </div>
+          <div className="gold-gradient rounded-xl p-2.5 text-center opacity-90">
+            <p className="text-[9px] text-primary-foreground/70 font-semibold uppercase">Gold 22K</p>
+            <p className="text-xs font-bold text-primary-foreground mt-0.5">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}<span className="text-[8px] font-normal">/g</span></p>
+          </div>
+          <div className="silver-gradient rounded-xl p-2.5 text-center">
+            <p className="text-[9px] text-primary-foreground/70 font-semibold uppercase">Silver</p>
+            <p className="text-xs font-bold text-primary-foreground mt-0.5">₹{parseFloat(prices.silver).toLocaleString("en-IN")}<span className="text-[8px] font-normal">/g</span></p>
+          </div>
+        </div>
+        <p className="text-[9px] text-muted-foreground text-center mt-2 opacity-70">
+          Last updated: {new Date(prices.updatedAt).toLocaleString("en-IN")}
+        </p>
+      </motion.div>
+
       {/* Gold + Silver Lockers (side by side) */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
         {/* Gold Locker */}
@@ -102,25 +143,32 @@ const Dashboard = () => {
         </div>
       </motion.div>
 
-      {/* Buy & Withdraw CTAs */}
-      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+      {/* Buy & Sell CTAs */}
+      <motion.div variants={itemVariants} className="grid grid-cols-3 gap-2">
         <button
-          onClick={() => navigate("/invest")}
-          className="gold-gradient gold-glow rounded-2xl py-3.5 px-4 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          onClick={() => navigate("/invest?metal=gold")}
+          className="gold-gradient gold-glow rounded-2xl py-3 px-2 text-primary-foreground font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
         >
-          <TrendingUp size={18} />
+          <Gem size={14} />
           Buy Gold
         </button>
         <button
-          onClick={() => navigate("/redeem")}
-          className="glass-card border-2 border-primary/30 rounded-2xl py-3.5 px-4 text-foreground font-semibold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          onClick={() => navigate("/invest?metal=silver")}
+          className="silver-gradient rounded-2xl py-3 px-2 text-primary-foreground font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
         >
-          <ArrowDownRight size={18} className="text-primary" />
-          Withdraw
+          <Landmark size={14} />
+          Buy Silver
+        </button>
+        <button
+          onClick={() => navigate("/redeem")}
+          className="glass-card border-2 border-primary/30 rounded-2xl py-3 px-2 text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+        >
+          <ArrowDownRight size={14} className="text-primary" />
+          Sell / Redeem
         </button>
       </motion.div>
 
-      {/* Quick Save Chips */}
+      {/* Instant Save Chips */}
       <motion.div variants={itemVariants} className="glass-card p-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Instant Save</p>
@@ -140,42 +188,9 @@ const Dashboard = () => {
         <p className="text-[10px] text-muted-foreground mt-2 text-center">Tap to save instantly in 24K Digital Gold</p>
       </motion.div>
 
-      {/* Live Prices Compact */}
-      <motion.div variants={itemVariants} className="glass-card p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-              <TrendingUp size={12} className="text-primary" />
-            </div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Live Rates</p>
-          </div>
-          <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-            </span>
-            <span className="text-[9px] font-semibold text-emerald-500 uppercase">Live</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="gold-gradient gold-glow rounded-xl p-2.5 text-center">
-            <p className="text-[9px] text-primary-foreground/70 font-semibold uppercase">Gold 24K</p>
-            <p className="text-xs font-bold text-primary-foreground mt-0.5">₹{parseFloat(prices.gold24k).toLocaleString("en-IN")}<span className="text-[8px] font-normal">/g</span></p>
-          </div>
-          <div className="gold-gradient rounded-xl p-2.5 text-center opacity-90">
-            <p className="text-[9px] text-primary-foreground/70 font-semibold uppercase">Gold 22K</p>
-            <p className="text-xs font-bold text-primary-foreground mt-0.5">₹{parseFloat(prices.gold22k).toLocaleString("en-IN")}<span className="text-[8px] font-normal">/g</span></p>
-          </div>
-          <div className="silver-gradient rounded-xl p-2.5 text-center">
-            <p className="text-[9px] text-primary-foreground/70 font-semibold uppercase">Silver</p>
-            <p className="text-xs font-bold text-primary-foreground mt-0.5">₹{parseFloat(prices.silver).toLocaleString("en-IN")}<span className="text-[8px] font-normal">/g</span></p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Banner Carousel */}
+      {/* Swipe to Invest Banner */}
       <motion.div variants={itemVariants}>
-        <BannerCarousel />
+        <SwipeToInvest />
       </motion.div>
 
       {/* Daily & Auto Savings */}
@@ -238,18 +253,6 @@ const Dashboard = () => {
             </button>
           ))}
         </div>
-      </motion.div>
-
-      {/* Swipe to Invest Banner */}
-      <motion.div variants={itemVariants}>
-        <SwipeToInvest />
-      </motion.div>
-
-      {/* Updated timestamp */}
-      <motion.div variants={itemVariants}>
-        <p className="text-[9px] text-muted-foreground text-center opacity-50">
-          Prices updated: {new Date(prices.updatedAt).toLocaleString("en-IN")}
-        </p>
       </motion.div>
     </motion.div>
   );
