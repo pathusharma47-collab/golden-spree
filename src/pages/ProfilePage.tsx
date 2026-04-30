@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { User, Shield, LogOut, Settings, ChevronRight } from "lucide-react";
+import { User, Shield, LogOut, ChevronRight, FileText, Lock, RefreshCcw, Truck } from "lucide-react";
 
 const ProfilePage = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -66,7 +66,27 @@ const ProfilePage = () => {
         transition={{ delay: 0.3 }}
         className="space-y-2"
       >
-        <p className="text-xs font-medium text-muted-foreground px-1 mb-2">Settings</p>
+        <p className="text-xs font-medium text-muted-foreground px-1 mb-2">Legal & Policies</p>
+        {[
+          { to: "/terms", icon: FileText, label: "Terms & Conditions" },
+          { to: "/privacy", icon: Lock, label: "Privacy Policy" },
+          { to: "/refund", icon: RefreshCcw, label: "Refund Policy" },
+          { to: "/delivery", icon: Truck, label: "Delivery Policy" },
+        ].map(({ to, icon: Icon, label }) => (
+          <button
+            key={to}
+            onClick={() => navigate(to)}
+            className="w-full glass-card p-4 flex items-center gap-3 active:scale-[0.98] transition-transform"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Icon size={18} className="text-primary" />
+            </div>
+            <p className="text-sm font-medium text-foreground flex-1 text-left">{label}</p>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
+        ))}
+
+        <p className="text-xs font-medium text-muted-foreground px-1 mb-2 mt-4">Settings</p>
         <button
           onClick={() => { logout(); navigate("/login"); }}
           className="w-full glass-card p-4 flex items-center gap-3 text-destructive active:scale-[0.98] transition-transform"

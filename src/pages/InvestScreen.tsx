@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useWallet } from "@/contexts/WalletContext";
@@ -200,62 +200,78 @@ const InvestScreen = () => {
           >
             {!selectedPlan ? (
               <>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mt-5 mb-3">Choose a SIP Plan</p>
-                <div className="space-y-3">
-                  {SIP_PLANS.map((plan, i) => {
-                    const enrolled = enrolledPlanIds.includes(plan.id);
-                    return (
-                      <motion.div
-                        key={plan.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.08 }}
-                        onClick={() => !enrolled && setSelectedPlan(plan)}
-                        className={`glass-card p-4 cursor-pointer transition-all ${
-                          enrolled
-                            ? "opacity-60 cursor-default"
-                            : "hover:border-primary/30 active:scale-[0.98]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                              plan.metal === "gold" ? "gold-gradient" : "silver-gradient"
-                            }`}>
-                              <Sparkles size={18} className="text-primary-foreground" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-foreground">{plan.name}</p>
-                              <p className="text-[11px] text-muted-foreground mt-0.5">{plan.description}</p>
-                            </div>
-                          </div>
-                          {enrolled ? (
-                            <div className="flex items-center gap-1 text-primary">
-                              <Check size={14} />
-                              <span className="text-[10px] font-semibold">Enrolled</span>
-                            </div>
-                          ) : (
-                            <ChevronRight size={18} className="text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/30">
-                          <div>
-                            <p className="text-[10px] text-muted-foreground">Monthly</p>
-                            <p className="text-xs font-semibold text-foreground">₹{plan.monthlyAmount.toLocaleString("en-IN")}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground">Duration</p>
-                            <p className="text-xs font-semibold text-foreground">{plan.duration} months</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground">Reward</p>
-                            <p className="text-xs font-semibold text-primary">{plan.bonusReward}</p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                {(["silver", "gold"] as const).map((category) => {
+                  const categoryPlans = SIP_PLANS.filter((p) => p.metal === category);
+                  return (
+                    <div key={category}>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mt-5 mb-3">
+                        {category === "silver" ? "Silver SIP Plans" : "Gold SIP Plans"}
+                      </p>
+                      <div className="space-y-3">
+                        {categoryPlans.map((plan, i) => {
+                          const enrolled = enrolledPlanIds.includes(plan.id);
+                          const isHero = plan.id === "silver-smart";
+                          return (
+                            <motion.div
+                              key={plan.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.08 }}
+                              onClick={() => !enrolled && setSelectedPlan(plan)}
+                              className={`relative glass-card p-4 cursor-pointer transition-all ${
+                                enrolled
+                                  ? "opacity-60 cursor-default"
+                                  : "hover:border-primary/30 active:scale-[0.98]"
+                              } ${isHero ? "border-2 border-primary/60 shadow-lg shadow-primary/10" : ""}`}
+                            >
+                              {isHero && (
+                                <div className="absolute -top-2.5 left-4 flex items-center gap-1 gold-gradient px-2.5 py-0.5 rounded-full">
+                                  <Crown size={10} className="text-primary-foreground" />
+                                  <span className="text-[9px] font-bold text-primary-foreground uppercase tracking-wide">Most Popular</span>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                    plan.metal === "gold" ? "gold-gradient" : "silver-gradient"
+                                  }`}>
+                                    <Sparkles size={18} className="text-primary-foreground" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-foreground">{plan.name}</p>
+                                    <p className="text-[11px] text-muted-foreground mt-0.5">{plan.description}</p>
+                                  </div>
+                                </div>
+                                {enrolled ? (
+                                  <div className="flex items-center gap-1 text-primary">
+                                    <Check size={14} />
+                                    <span className="text-[10px] font-semibold">Enrolled</span>
+                                  </div>
+                                ) : (
+                                  <ChevronRight size={18} className="text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/30">
+                                <div>
+                                  <p className="text-[10px] text-muted-foreground">Monthly</p>
+                                  <p className="text-xs font-semibold text-foreground">₹{plan.monthlyAmount.toLocaleString("en-IN")}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-muted-foreground">Total</p>
+                                  <p className="text-xs font-semibold text-foreground">₹{(plan.monthlyAmount * plan.duration).toLocaleString("en-IN")}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-muted-foreground">Reward</p>
+                                  <p className="text-xs font-semibold text-primary">{plan.bonusReward}</p>
+                                </div>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {activeSIPs.length > 0 && (
                   <motion.button

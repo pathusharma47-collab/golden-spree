@@ -22,6 +22,10 @@ import SpinWheelScreen from "./pages/SpinWheelScreen";
 import KYCScreen from "./pages/KYCScreen";
 import NomineeScreen from "./pages/NomineeScreen";
 import ReferScreen from "./pages/ReferScreen";
+import TermsScreen from "./pages/TermsScreen";
+import PrivacyScreen from "./pages/PrivacyScreen";
+import RefundScreen from "./pages/RefundScreen";
+import DeliveryScreen from "./pages/DeliveryScreen";
 import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
@@ -60,6 +64,10 @@ const AppRoutes = () => {
           <Route path="/kyc" element={<ProtectedRoute><KYCScreen /></ProtectedRoute>} />
           <Route path="/nominees" element={<ProtectedRoute><NomineeScreen /></ProtectedRoute>} />
           <Route path="/refer" element={<ProtectedRoute><ReferScreen /></ProtectedRoute>} />
+          <Route path="/terms" element={<TermsScreen />} />
+          <Route path="/privacy" element={<PrivacyScreen />} />
+          <Route path="/refund" element={<RefundScreen />} />
+          <Route path="/delivery" element={<DeliveryScreen />} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
