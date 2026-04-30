@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
 import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles, Fingerprint, Loader2, CreditCard, Building2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useKYC } from "@/hooks/useKYC";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,12 +26,18 @@ const WalletPage = () => {
   const [bankDetails, setBankDetails] = useState({ account_number: "", ifsc: "", beneficiary_name: "" });
   const [syncingFunds, setSyncingFunds] = useState(false);
   const [selectedTx, setSelectedTx] = useState<PaymentTransaction | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleAddFunds = async () => {
     const num = parseFloat(amount);
     if (!num || num <= 0) {
       hapticError();
       toast.error("Enter a valid amount");
+      return;
+    }
+    if (!agreedToTerms) {
+      hapticError();
+      toast.error("Please agree to Terms, Privacy & Refund Policy");
       return;
     }
 
@@ -253,7 +259,7 @@ const WalletPage = () => {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAddFunds}
-                disabled={paymentLoading || syncingFunds}
+                disabled={paymentLoading || syncingFunds || !agreedToTerms}
                 className="w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 gold-gradient text-primary-foreground gold-glow disabled:opacity-50"
               >
                 {syncingFunds ? (
@@ -264,6 +270,20 @@ const WalletPage = () => {
                   <><CreditCard size={18} /> Pay & Add Funds</>
                 )}
               </motion.button>
+              <label className="flex items-start gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                />
+                <span className="text-[11px] text-muted-foreground leading-snug">
+                  I agree to the{" "}
+                  <Link to="/terms" className="text-primary underline">Terms & Conditions</Link>,{" "}
+                  <Link to="/privacy" className="text-primary underline">Privacy Policy</Link> and{" "}
+                  <Link to="/refund" className="text-primary underline">Refund Policy</Link>.
+                </span>
+              </label>
               <p className="text-[10px] text-center text-muted-foreground">Powered by Razorpay • Secure Payment</p>
             </div>
           </motion.div>
