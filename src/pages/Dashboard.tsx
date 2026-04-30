@@ -51,37 +51,54 @@ const Dashboard = () => {
         </button>
       </motion.div>
 
-      {/* Gold Locker Visual */}
-      <motion.div variants={itemVariants} className="glass-card p-5 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/5 -translate-y-8 translate-x-8" />
-        <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full bg-primary/5 translate-y-6 -translate-x-6" />
-        <div className="relative">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded-lg gold-gradient flex items-center justify-center">
-              <Gem size={14} className="text-primary-foreground" />
-            </div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Gold Locker</p>
-          </div>
-          <div className="flex items-end justify-between mt-3">
-            <div>
-              <p className="text-4xl font-display font-bold text-foreground">{goldGrams}<span className="text-lg text-muted-foreground ml-1">gm</span></p>
-              <p className="text-sm text-muted-foreground mt-1">≈ ₹{totalValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center gap-1 text-emerald-500 text-xs font-semibold">
-                <TrendingUp size={12} />
-                <span>+2.4%</span>
+      {/* Gold + Silver Lockers (side by side) */}
+      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+        {/* Gold Locker */}
+        <div className="glass-card p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-primary/5 -translate-y-6 translate-x-6" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg gold-gradient flex items-center justify-center">
+                <Gem size={14} className="text-primary-foreground" />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">today</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Gold Locker</p>
+            </div>
+            <p className="text-2xl font-display font-bold text-foreground mt-2">
+              {goldGrams}<span className="text-sm text-muted-foreground ml-1">gm</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              ≈ ₹{totalValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </p>
+            <div className="mt-3 flex gap-1">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < 3 ? "gold-gradient" : "bg-muted"}`} />
+              ))}
             </div>
           </div>
-          {/* Gold bar visual */}
-          <div className="mt-4 flex gap-1.5">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className={`h-2 flex-1 rounded-full ${i < 3 ? "gold-gradient" : "bg-muted"}`} />
-            ))}
+        </div>
+
+        {/* Silver Locker */}
+        <div className="glass-card p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-muted/40 -translate-y-6 translate-x-6" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg silver-gradient flex items-center justify-center">
+                <Landmark size={14} className="text-primary-foreground" />
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Silver Locker</p>
+            </div>
+            <p className="text-2xl font-display font-bold text-foreground mt-2">
+              {silverGrams}<span className="text-sm text-muted-foreground ml-1">gm</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              ≈ ₹{(silverGrams * silverRate).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </p>
+            <div className="mt-3 flex gap-1">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < 2 ? "silver-gradient" : "bg-muted"}`} />
+              ))}
+            </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1">3 of 5 weekly savings completed</p>
         </div>
       </motion.div>
 
@@ -226,25 +243,6 @@ const Dashboard = () => {
       {/* Swipe to Invest Banner */}
       <motion.div variants={itemVariants}>
         <SwipeToInvest />
-      </motion.div>
-
-      {/* Silver Holdings */}
-      <motion.div variants={itemVariants} className="glass-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl silver-gradient flex items-center justify-center">
-              <Landmark size={18} className="text-primary-foreground" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-semibold uppercase">Silver Locker</p>
-              <p className="text-lg font-display font-bold text-foreground">{silverGrams} gm</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-semibold text-foreground">₹{(silverGrams * silverRate).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
-            <p className="text-[10px] text-muted-foreground">current value</p>
-          </div>
-        </div>
       </motion.div>
 
       {/* Updated timestamp */}
