@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles, Crown } from "lucide-react";
+import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles, Crown, Gem, Landmark, Repeat } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useWallet } from "@/contexts/WalletContext";
@@ -96,14 +96,14 @@ const InvestScreen = () => {
       {/* Toggle */}
       <div className="mt-4 glass-card p-1 flex rounded-xl">
         {([
-          { key: "gold" as Tab, label: "Gold" },
-          { key: "silver" as Tab, label: "Silver" },
-          { key: "sip" as Tab, label: "SIP" },
-        ]).map(({ key, label }) => (
+          { key: "gold" as Tab, label: "Gold", Icon: Gem },
+          { key: "silver" as Tab, label: "Silver", Icon: Landmark },
+          { key: "sip" as Tab, label: "SIP", Icon: Repeat },
+        ]).map(({ key, label, Icon }) => (
           <button
             key={key}
             onClick={() => { setTab(key); if (key !== "sip") setAmount(""); setSelectedPlan(null); }}
-            className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-1.5 ${
               tab === key
                 ? key === "gold"
                   ? "gold-gradient text-primary-foreground gold-glow"
@@ -113,6 +113,7 @@ const InvestScreen = () => {
                 : "text-muted-foreground"
             }`}
           >
+            <Icon size={14} />
             {label}
           </button>
         ))}
