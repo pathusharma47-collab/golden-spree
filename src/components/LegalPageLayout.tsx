@@ -1,15 +1,16 @@
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ReactNode } from "react";
 
 interface Props {
   title: string;
   subtitle?: string;
+  icon?: LucideIcon;
   children: ReactNode;
 }
 
-const LegalPageLayout = ({ title, subtitle, children }: Props) => {
+const LegalPageLayout = ({ title, subtitle, icon: Icon, children }: Props) => {
   const navigate = useNavigate();
   return (
     <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
@@ -22,9 +23,16 @@ const LegalPageLayout = ({ title, subtitle, children }: Props) => {
         <ArrowLeft size={22} />
       </motion.button>
 
-      <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl font-bold text-foreground">{title}</h1>
-        {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+      <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
+        {Icon && (
+          <div className="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center shrink-0">
+            <Icon size={18} className="text-primary-foreground" />
+          </div>
+        )}
+        <div>
+          <h1 className="font-display text-2xl font-bold text-foreground">{title}</h1>
+          {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+        </div>
       </motion.div>
 
       <motion.article
