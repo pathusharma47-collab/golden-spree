@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles, Crown, Gem, Landmark, Repeat } from "lucide-react";
+import SwipeToConfirm from "@/components/SwipeToConfirm";
 import { useNavigate } from "react-router-dom";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useWallet } from "@/contexts/WalletContext";
@@ -178,18 +179,16 @@ const InvestScreen = () => {
               ))}
             </div>
 
-            {/* CTA */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleInvest}
-              className={`w-full mt-8 py-4 rounded-2xl font-semibold text-lg transition-all ${
-                numAmount > 0 && numAmount <= balance
-                  ? "gold-gradient text-primary-foreground animate-glow-pulse"
-                  : "bg-muted text-muted-foreground"
-              }`}
-            >
-              Invest Now
-            </motion.button>
+            {/* CTA — swipe to invest */}
+            <div className="mt-8">
+              <SwipeToConfirm
+                label={numAmount > 0 ? `Swipe to Invest ₹${numAmount.toLocaleString("en-IN")}` : "Enter amount to invest"}
+                onConfirm={handleInvest}
+                disabled={!(numAmount > 0 && numAmount <= balance)}
+                icon={tab === "silver" ? Landmark : Gem}
+                variant={tab === "silver" ? "silver" : "gold"}
+              />
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -332,17 +331,15 @@ const InvestScreen = () => {
                   </div>
                 </motion.div>
 
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleEnrollSIP(selectedPlan)}
-                  className={`w-full mt-6 py-4 rounded-2xl font-semibold text-lg transition-all ${
-                    selectedPlan.monthlyAmount <= balance
-                      ? "gold-gradient text-primary-foreground animate-glow-pulse"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  Start SIP — ₹{selectedPlan.monthlyAmount.toLocaleString("en-IN")}/mo
-                </motion.button>
+                <div className="mt-6">
+                  <SwipeToConfirm
+                    label={`Swipe to Start SIP — ₹${selectedPlan.monthlyAmount.toLocaleString("en-IN")}/mo`}
+                    onConfirm={() => handleEnrollSIP(selectedPlan)}
+                    disabled={selectedPlan.monthlyAmount > balance}
+                    icon={Repeat}
+                    variant={selectedPlan.metal === "silver" ? "silver" : "gold"}
+                  />
+                </div>
                 <p className="text-[10px] text-muted-foreground text-center mt-2">
                   First installment will be deducted now
                 </p>

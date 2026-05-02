@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
 import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles, Fingerprint, Loader2, CreditCard, Building2, ShieldCheck, Receipt } from "lucide-react";
+import SwipeToConfirm from "@/components/SwipeToConfirm";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useKYC } from "@/hooks/useKYC";
@@ -256,20 +257,19 @@ const WalletPage = () => {
                   </motion.button>
                 ))}
               </div>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={handleAddFunds}
-                disabled={paymentLoading || syncingFunds || !agreedToTerms}
-                className="w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 gold-gradient text-primary-foreground gold-glow disabled:opacity-50"
-              >
-                {syncingFunds ? (
-                  <><Loader2 size={18} className="animate-spin" /> Confirming payment...</>
-                ) : paymentLoading ? (
-                  <><Loader2 size={18} className="animate-spin" /> Processing...</>
-                ) : (
-                  <><CreditCard size={18} /> Pay & Add Funds</>
-                )}
-              </motion.button>
+              <SwipeToConfirm
+                label={
+                  parseFloat(amount) > 0
+                    ? `Swipe to Pay ₹${parseFloat(amount).toLocaleString("en-IN")}`
+                    : "Enter amount to add"
+                }
+                loadingLabel={syncingFunds ? "Confirming payment..." : "Processing..."}
+                onConfirm={handleAddFunds}
+                disabled={!agreedToTerms || !(parseFloat(amount) > 0)}
+                loading={paymentLoading || syncingFunds}
+                icon={CreditCard}
+                variant="gold"
+              />
               <label className="flex items-start gap-2 cursor-pointer select-none">
                 <ShieldCheck size={14} className="text-primary mt-0.5 shrink-0" />
                 <input
