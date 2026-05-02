@@ -1,8 +1,9 @@
 import LegalPageLayout from "@/components/LegalPageLayout";
+import { Lock } from "lucide-react";
 
 const PrivacyScreen = () => {
   return (
-    <LegalPageLayout title="Privacy Policy" subtitle="How we collect, use and protect your data">
+    <LegalPageLayout title="Privacy Policy" subtitle="How we collect, use and protect your data" icon={Lock}>
       <section>
         <h3>1. Information We Collect</h3>
         <ul>
