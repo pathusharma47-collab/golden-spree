@@ -1,4 +1,5 @@
 import LegalPageLayout from "@/components/LegalPageLayout";
+import { FileText } from "lucide-react";
 
 const Section = ({ n, title, children }: { n: number; title: string; children: React.ReactNode }) => (
   <section>
@@ -9,7 +10,7 @@ const Section = ({ n, title, children }: { n: number; title: string; children: R
 
 const TermsScreen = () => {
   return (
-    <LegalPageLayout title="Terms & Conditions" subtitle="Last updated: April 2026">
+    <LegalPageLayout title="Terms & Conditions" subtitle="Last updated: April 2026" icon={FileText}>
       <p>
         These Terms & Conditions ("Terms") govern your use of the Maheshwari Alankar
         application and services. Please read them carefully before using the app.

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
-import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles, Fingerprint, Loader2, CreditCard, Building2 } from "lucide-react";
+import { ArrowLeft, Plus, ArrowDownToLine, Wallet, ArrowUpRight, ArrowDownLeft, Sparkles, Fingerprint, Loader2, CreditCard, Building2, ShieldCheck, Receipt } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useKYC } from "@/hooks/useKYC";
@@ -271,6 +271,7 @@ const WalletPage = () => {
                 )}
               </motion.button>
               <label className="flex items-start gap-2 cursor-pointer select-none">
+                <ShieldCheck size={14} className="text-primary mt-0.5 shrink-0" />
                 <input
                   type="checkbox"
                   checked={agreedToTerms}

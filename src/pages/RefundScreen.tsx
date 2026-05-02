@@ -1,8 +1,9 @@
 import LegalPageLayout from "@/components/LegalPageLayout";
+import { RefreshCcw } from "lucide-react";
 
 const RefundScreen = () => {
   return (
-    <LegalPageLayout title="Refund Policy" subtitle="Rules for refunds and cancellations">
+    <LegalPageLayout title="Refund Policy" subtitle="Rules for refunds and cancellations" icon={RefreshCcw}>
       <section>
         <h3>1. Conversion to Gold / Silver</h3>
         <ul>

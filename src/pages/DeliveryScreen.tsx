@@ -1,8 +1,9 @@
 import LegalPageLayout from "@/components/LegalPageLayout";
+import { Truck } from "lucide-react";
 
 const DeliveryScreen = () => {
   return (
-    <LegalPageLayout title="Delivery Policy" subtitle="Pickup and home delivery terms">
+    <LegalPageLayout title="Delivery Policy" subtitle="Pickup and home delivery terms" icon={Truck}>
       <section>
         <h3>1. Delivery Options</h3>
         <ul>

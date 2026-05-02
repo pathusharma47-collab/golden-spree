@@ -14,6 +14,8 @@ import {
   Loader2,
   Pencil,
   X,
+  Coins,
+  ImageIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -257,19 +259,23 @@ const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
-        {(["prices", "banners"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
-              activeTab === tab
-                ? "gold-gradient text-primary-foreground gold-glow"
-                : "bg-card border border-border text-muted-foreground"
-            }`}
-          >
-            {tab === "prices" ? "💰 Prices" : "🖼️ Banners"}
-          </button>
-        ))}
+        {(["prices", "banners"] as const).map((tab) => {
+          const TabIcon = tab === "prices" ? Coins : ImageIcon;
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+                activeTab === tab
+                  ? "gold-gradient text-primary-foreground gold-glow"
+                  : "bg-card border border-border text-muted-foreground"
+              }`}
+            >
+              <TabIcon size={14} />
+              {tab === "prices" ? "Prices" : "Banners"}
+            </button>
+          );
+        })}
       </div>
 
       <AnimatePresence mode="wait">
