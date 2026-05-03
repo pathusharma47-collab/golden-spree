@@ -178,7 +178,7 @@ const Dashboard = () => {
           {quickSaveAmounts.map((amt) => (
             <button
               key={amt}
-              onClick={() => navigate("/invest")}
+              onClick={() => navigate(`/invest?metal=gold&amount=${amt}`)}
               className="flex-shrink-0 px-4 py-2.5 rounded-xl border-2 border-primary/20 bg-primary/5 text-foreground font-semibold text-sm hover:border-primary/50 hover:bg-primary/10 active:scale-95 transition-all"
             >
               ₹{amt}
@@ -186,11 +186,6 @@ const Dashboard = () => {
           ))}
         </div>
         <p className="text-[10px] text-muted-foreground mt-2 text-center">Tap to save instantly in 24K Digital Gold</p>
-      </motion.div>
-
-      {/* Swipe to Invest Banner */}
-      <motion.div variants={itemVariants}>
-        <SwipeToInvest />
       </motion.div>
 
       {/* Daily & Auto Savings */}
@@ -255,38 +250,6 @@ const Dashboard = () => {
         </div>
       </motion.div>
     </motion.div>
-  );
-};
-
-/* Swipe to Invest component */
-const SwipeToInvest = () => {
-  const navigate = useNavigate();
-
-  const handleDragEnd = (_: any, info: { offset: { x: number } }) => {
-    if (info.offset.x > 120) {
-      navigate("/invest");
-    }
-  };
-
-  return (
-    <div className="glass-card p-4 overflow-hidden">
-      <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-3">Swipe to Invest</p>
-      <div className="relative h-14 rounded-2xl bg-muted/50 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-xs text-muted-foreground font-medium">Swipe right to buy gold →</p>
-        </div>
-        <motion.div
-          drag="x"
-          dragConstraints={{ left: 0, right: 280 }}
-          dragElastic={0.1}
-          onDragEnd={handleDragEnd}
-          whileDrag={{ scale: 1.05 }}
-          className="absolute left-1 top-1 bottom-1 w-12 rounded-xl gold-gradient gold-glow flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
-        >
-          <ChevronRight size={20} className="text-primary-foreground" />
-        </motion.div>
-      </div>
-    </div>
   );
 };
 
