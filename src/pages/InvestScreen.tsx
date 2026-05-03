@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles, Crown, Gem, Landmark, Repeat } from "lucide-react";
+import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles, Crown, Gem, Landmark, Repeat, ArrowRight } from "lucide-react";
 import SwipeToConfirm from "@/components/SwipeToConfirm";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useWallet } from "@/contexts/WalletContext";
 import { useSIP, SIP_PLANS, SIPPlan } from "@/contexts/SIPContext";
@@ -17,9 +17,18 @@ const InvestScreen = () => {
   const [amount, setAmount] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<SIPPlan | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const prices = useMetalPrices();
   const { balance, deductForInvestment } = useWallet();
   const { activeSIPs, enrollInSIP } = useSIP();
+
+  useEffect(() => {
+    const metalParam = searchParams.get("metal");
+    const amountParam = searchParams.get("amount");
+    if (metalParam === "gold" || metalParam === "silver") setTab(metalParam);
+    else if (metalParam === "sip") setTab("sip");
+    if (amountParam && !isNaN(Number(amountParam))) setAmount(amountParam);
+  }, [searchParams]);
 
   const metal = tab === "sip" ? (selectedPlan?.metal || "gold") : tab;
   const rate = metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver);
@@ -185,7 +194,7 @@ const InvestScreen = () => {
                 label={numAmount > 0 ? `Swipe to Invest ₹${numAmount.toLocaleString("en-IN")}` : "Enter amount to invest"}
                 onConfirm={handleInvest}
                 disabled={!(numAmount > 0 && numAmount <= balance)}
-                icon={tab === "silver" ? Landmark : Gem}
+                icon={ArrowRight}
                 variant={tab === "silver" ? "silver" : "gold"}
               />
             </div>
@@ -336,7 +345,7 @@ const InvestScreen = () => {
                     label={`Swipe to Start SIP — ₹${selectedPlan.monthlyAmount.toLocaleString("en-IN")}/mo`}
                     onConfirm={() => handleEnrollSIP(selectedPlan)}
                     disabled={selectedPlan.monthlyAmount > balance}
-                    icon={Repeat}
+                    icon={ArrowRight}
                     variant={selectedPlan.metal === "silver" ? "silver" : "gold"}
                   />
                 </div>
