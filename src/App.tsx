@@ -26,6 +26,7 @@ import TermsScreen from "./pages/TermsScreen";
 import PrivacyScreen from "./pages/PrivacyScreen";
 import RefundScreen from "./pages/RefundScreen";
 import DeliveryScreen from "./pages/DeliveryScreen";
+import LockerScreen from "./pages/LockerScreen";
 import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ const AppRoutes = () => {
           <Route path="/privacy" element={<PrivacyScreen />} />
           <Route path="/refund" element={<RefundScreen />} />
           <Route path="/delivery" element={<DeliveryScreen />} />
+          <Route path="/locker/:type" element={<ProtectedRoute><LockerScreen /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>

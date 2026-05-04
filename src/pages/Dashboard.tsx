@@ -95,7 +95,10 @@ const Dashboard = () => {
       {/* Gold + Silver Lockers (side by side) */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
         {/* Gold Locker */}
-        <div className="glass-card p-4 relative overflow-hidden">
+        <button
+          onClick={() => navigate("/locker/gold")}
+          className="glass-card p-4 relative overflow-hidden text-left active:scale-[0.98] transition-transform"
+        >
           <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-primary/5 -translate-y-6 translate-x-6" />
           <div className="relative">
             <div className="flex items-center gap-2 mb-1">
@@ -116,10 +119,13 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
-        </div>
+        </button>
 
         {/* Silver Locker */}
-        <div className="glass-card p-4 relative overflow-hidden">
+        <button
+          onClick={() => navigate("/locker/silver")}
+          className="glass-card p-4 relative overflow-hidden text-left active:scale-[0.98] transition-transform"
+        >
           <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-muted/40 -translate-y-6 translate-x-6" />
           <div className="relative">
             <div className="flex items-center gap-2 mb-1">
@@ -140,7 +146,7 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
-        </div>
+        </button>
       </motion.div>
 
       {/* Buy & Sell CTAs */}
