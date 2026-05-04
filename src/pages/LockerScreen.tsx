@@ -21,8 +21,8 @@ const LockerScreen = () => {
   const profit = value - investedAmount;
   const profitPct = (profit / investedAmount) * 100;
 
-  // Generate stacked items for vault visualization
-  const itemCount = Math.max(6, Math.min(40, Math.round(progress * 0.4)));
+  // One bar per gram (rounded), capped for visual sanity
+  const itemCount = Math.max(1, Math.min(40, Math.round(grams)));
   const items = useMemo(
     () => Array.from({ length: itemCount }).map((_, i) => ({
       id: i,
@@ -171,71 +171,43 @@ const LockerScreen = () => {
                         className="absolute left-1/2 bottom-2"
                         style={{ transform: `translateX(${it.x}px)` }}
                       >
-                        {isGold ? (
-                          <svg width="30" height="30" viewBox="0 0 30 30" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.45))" }}>
-                            <defs>
-                              <radialGradient id={`gc-${it.id}`} cx="35%" cy="30%" r="75%">
-                                <stop offset="0%" stopColor="#FFF4C2" />
-                                <stop offset="40%" stopColor="#F4C849" />
-                                <stop offset="80%" stopColor="#B8841C" />
-                                <stop offset="100%" stopColor="#7A5410" />
-                              </radialGradient>
-                              <radialGradient id={`gci-${it.id}`} cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stopColor="#FFE99A" />
-                                <stop offset="100%" stopColor="#D4A02A" />
-                              </radialGradient>
-                            </defs>
-                            {/* Outer rim */}
-                            <circle cx="15" cy="15" r="14" fill={`url(#gc-${it.id})`} stroke="#8B5E10" strokeWidth="0.5" />
-                            {/* Reeded edge dots */}
-                            {Array.from({ length: 24 }).map((_, k) => {
-                              const a = (k / 24) * Math.PI * 2;
-                              return (
-                                <circle
-                                  key={k}
-                                  cx={15 + Math.cos(a) * 13}
-                                  cy={15 + Math.sin(a) * 13}
-                                  r="0.45"
-                                  fill="#7A5410"
-                                  opacity="0.7"
-                                />
-                              );
-                            })}
-                            {/* Inner field */}
-                            <circle cx="15" cy="15" r="10" fill={`url(#gci-${it.id})`} stroke="#A6791A" strokeWidth="0.4" />
-                            {/* Monogram MA */}
-                            <text x="15" y="18.2" textAnchor="middle" fontSize="8" fontWeight="800" fill="#5C3D08" fontFamily="serif">MA</text>
-                            {/* Highlight */}
-                            <ellipse cx="10" cy="9" rx="4" ry="2" fill="#FFFFFF" opacity="0.55" />
-                          </svg>
-                        ) : (
-                          <svg width="34" height="18" viewBox="0 0 34 18" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }}>
-                            <defs>
-                              <linearGradient id={`sb-${it.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#FAFBFC" />
-                                <stop offset="35%" stopColor="#D8DCE2" />
-                                <stop offset="65%" stopColor="#9098A4" />
-                                <stop offset="100%" stopColor="#5E6571" />
-                              </linearGradient>
-                              <linearGradient id={`sbt-${it.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-                                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-                              </linearGradient>
-                            </defs>
-                            {/* Bar body with bevel */}
-                            <rect x="1" y="1.5" width="32" height="15" rx="1.5" fill={`url(#sb-${it.id})`} stroke="#4A515C" strokeWidth="0.4" />
-                            {/* Inset border (stamp frame) */}
-                            <rect x="3" y="3.5" width="28" height="11" rx="0.8" fill="none" stroke="#4A515C" strokeWidth="0.3" opacity="0.5" />
-                            {/* Top highlight */}
-                            <rect x="2" y="2" width="30" height="3" rx="1" fill={`url(#sbt-${it.id})`} />
-                            {/* Stamp text */}
-                            <text x="17" y="9" textAnchor="middle" fontSize="3.2" fontWeight="800" fill="#2A2F38" fontFamily="serif">MA</text>
-                            <text x="17" y="12.8" textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#3A4049" letterSpacing="0.3">999.9</text>
-                            {/* Side notches */}
-                            <line x1="0.5" y1="6" x2="0.5" y2="12" stroke="#3A4049" strokeWidth="0.6" />
-                            <line x1="33.5" y1="6" x2="33.5" y2="12" stroke="#3A4049" strokeWidth="0.6" />
-                          </svg>
-                        )}
+                        <svg width="34" height="18" viewBox="0 0 34 18" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }}>
+                          <defs>
+                            <linearGradient id={`bar-${it.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                              {isGold ? (
+                                <>
+                                  <stop offset="0%" stopColor="#FFF4C2" />
+                                  <stop offset="35%" stopColor="#F4C849" />
+                                  <stop offset="65%" stopColor="#B8841C" />
+                                  <stop offset="100%" stopColor="#7A5410" />
+                                </>
+                              ) : (
+                                <>
+                                  <stop offset="0%" stopColor="#FAFBFC" />
+                                  <stop offset="35%" stopColor="#D8DCE2" />
+                                  <stop offset="65%" stopColor="#9098A4" />
+                                  <stop offset="100%" stopColor="#5E6571" />
+                                </>
+                              )}
+                            </linearGradient>
+                            <linearGradient id={`bart-${it.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+                              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+                            </linearGradient>
+                          </defs>
+                          {/* Bar body with bevel */}
+                          <rect x="1" y="1.5" width="32" height="15" rx="1.5" fill={`url(#bar-${it.id})`} stroke={isGold ? "#6B4910" : "#4A515C"} strokeWidth="0.4" />
+                          {/* Inset stamp frame */}
+                          <rect x="3" y="3.5" width="28" height="11" rx="0.8" fill="none" stroke={isGold ? "#6B4910" : "#4A515C"} strokeWidth="0.3" opacity="0.5" />
+                          {/* Top highlight */}
+                          <rect x="2" y="2" width="30" height="3" rx="1" fill={`url(#bart-${it.id})`} />
+                          {/* Stamp text */}
+                          <text x="17" y="9" textAnchor="middle" fontSize="3.2" fontWeight="800" fill={isGold ? "#5C3D08" : "#2A2F38"} fontFamily="serif">MA</text>
+                          <text x="17" y="12.8" textAnchor="middle" fontSize="2.2" fontWeight="700" fill={isGold ? "#6B4910" : "#3A4049"} letterSpacing="0.3">999.9</text>
+                          {/* Side notches */}
+                          <line x1="0.5" y1="6" x2="0.5" y2="12" stroke={isGold ? "#6B4910" : "#3A4049"} strokeWidth="0.6" />
+                          <line x1="33.5" y1="6" x2="33.5" y2="12" stroke={isGold ? "#6B4910" : "#3A4049"} strokeWidth="0.6" />
+                        </svg>
                       </motion.div>
                     ))}
                   </div>
