@@ -23,14 +23,27 @@ const LockerScreen = () => {
 
   // Gold: 1 bar per gram. Silver: 1 bar per 50g. Capped for visual sanity.
   const rawCount = isGold ? Math.round(grams) : Math.floor(grams / 50);
-  const itemCount = Math.max(1, Math.min(40, rawCount));
+  const itemCount = Math.max(1, Math.min(24, rawCount));
+  // Lay bars out on a clean grid so each one is clearly visible
+  const COLS = 4;
+  const COL_W = 44; // px between bar centers horizontally
+  const ROW_H = 22; // px between bar centers vertically
   const items = useMemo(
-    () => Array.from({ length: itemCount }).map((_, i) => ({
-      id: i,
-      x: (Math.random() - 0.5) * 60,
-      delay: i * 0.04,
-      rotate: (Math.random() - 0.5) * 30,
-    })),
+    () => Array.from({ length: itemCount }).map((_, i) => {
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      // Center the row horizontally; last row may have fewer items
+      const itemsInRow = Math.min(COLS, itemCount - row * COLS);
+      const x = (col - (itemsInRow - 1) / 2) * COL_W;
+      const y = -row * ROW_H;
+      return {
+        id: i,
+        x,
+        y,
+        delay: i * 0.05,
+        rotate: (((i * 37) % 11) - 5) * 0.6, // subtle, deterministic tilt
+      };
+    }),
     [itemCount]
   );
 
@@ -158,7 +171,7 @@ const LockerScreen = () => {
                         key={it.id}
                         initial={{ y: -200, opacity: 0, rotate: 0 }}
                         animate={{
-                          y: -((it.id % 8) * 6) - 4,
+                          y: it.y - 4,
                           opacity: 1,
                           rotate: it.rotate,
                           x: it.x,
