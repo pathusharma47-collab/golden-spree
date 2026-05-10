@@ -14,22 +14,30 @@ const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const goToTab = (path: string) => {
+    if (location.pathname !== path) navigate(path);
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/40 px-1 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/40 px-1 pb-safe pointer-events-auto touch-manipulation">
       <div className="flex items-center justify-around py-1.5">
         {tabs.map((tab) => {
           const active = location.pathname === tab.path;
           return (
             <motion.button
+              type="button"
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              onClick={() => goToTab(tab.path)}
+              onPointerUp={(event) => {
+                if (event.pointerType !== "mouse") goToTab(tab.path);
+              }}
               whileTap={{ scale: 0.85 }}
-              className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl transition-all"
+              className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 py-2 rounded-2xl transition-all touch-manipulation select-none"
             >
               {active && (
                 <motion.div
                   layoutId="nav-bg"
-                  className="absolute inset-0 rounded-2xl bg-primary/10"
+                  className="pointer-events-none absolute inset-0 rounded-2xl bg-primary/10"
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}
