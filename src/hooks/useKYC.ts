@@ -35,7 +35,7 @@ export const useKYC = (): KYCStatus => {
       const { data, error } = await supabase
         .from("kyc_details")
         .select("first_name, last_name, pan_number, date_of_birth, status")
-        .eq("user_email", user.email)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (!error && data && data.status === "verified") {
