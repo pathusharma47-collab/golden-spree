@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { TrendingUp, ArrowDownRight, Gift, Gem, CalendarCheck, Zap, RefreshCw, UserPlus, ShieldCheck, ChevronRight, Sparkles, CircleDollarSign, Landmark } from "lucide-react";
+import { TrendingUp, ArrowDownRight, Gift, Gem, CalendarCheck, Zap, RefreshCw, UserPlus, ShieldCheck, ChevronRight, Sparkles, CircleDollarSign, Landmark, AlertCircle } from "lucide-react";
 import BannerCarousel from "@/components/BannerCarousel";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
+import { usePriceFreshness } from "@/hooks/usePriceFreshness";
 import { useAuth } from "@/contexts/AuthContext";
+import { useKYC } from "@/hooks/useKYC";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.jpg";
 
@@ -12,7 +14,9 @@ const Dashboard = () => {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
   const prices = useMetalPrices();
+  const freshness = usePriceFreshness(prices.updatedAt);
   const { user } = useAuth();
+  const { isVerified: kycVerified, loading: kycLoading } = useKYC();
   const navigate = useNavigate();
 
   const gold24kRate = parseFloat(prices.gold24k) || 0;
@@ -44,6 +48,19 @@ const Dashboard = () => {
           <div>
             <p className="text-muted-foreground text-xs">{greeting},</p>
             <h1 className="font-display text-lg font-bold text-foreground">{user?.name || "Arjun"}</h1>
+            {!kycLoading && (
+              <button
+                onClick={() => navigate("/kyc")}
+                className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors ${
+                  kycVerified
+                    ? "bg-emerald-500/10 text-emerald-600"
+                    : "bg-amber-500/10 text-amber-700 hover:bg-amber-500/20"
+                }`}
+              >
+                <ShieldCheck size={10} />
+                {kycVerified ? "KYC Verified" : "Complete KYC →"}
+              </button>
+            )}
           </div>
         </div>
         <button onClick={() => navigate("/profile")} className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
@@ -65,13 +82,29 @@ const Dashboard = () => {
             </div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Live Rates</p>
           </div>
-          <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-            </span>
-            <span className="text-[9px] font-semibold text-emerald-500 uppercase">Live</span>
-          </div>
+          {(() => {
+            const colors =
+              freshness.level === "fresh"
+                ? { bg: "bg-emerald-500/10", dot: "bg-emerald-500", ping: "bg-emerald-400", text: "text-emerald-600" }
+                : freshness.level === "stale"
+                ? { bg: "bg-amber-500/10", dot: "bg-amber-500", ping: "bg-amber-400", text: "text-amber-700" }
+                : { bg: "bg-destructive/10", dot: "bg-destructive", ping: "bg-destructive", text: "text-destructive" };
+            return (
+              <div className={`flex items-center gap-1.5 ${colors.bg} px-2 py-0.5 rounded-full`} title={`Prices updated ${freshness.label}`}>
+                {freshness.level === "expired" ? (
+                  <AlertCircle size={10} className={colors.text} />
+                ) : (
+                  <span className="relative flex h-1.5 w-1.5">
+                    {freshness.level === "fresh" && (
+                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${colors.ping} opacity-75`} />
+                    )}
+                    <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${colors.dot}`} />
+                  </span>
+                )}
+                <span className={`text-[9px] font-semibold ${colors.text} uppercase`}>{freshness.label}</span>
+              </div>
+            );
+          })()}
         </div>
         <div className="grid grid-cols-3 gap-2">
           <div className="gold-gradient gold-glow rounded-xl p-2.5 text-center">
