@@ -250,7 +250,7 @@ const AdminDashboard = () => {
           </div>
         </div>
         <button
-          onClick={() => { logout(); navigate("/login"); }}
+          onClick={async () => { await logout(); navigate("/auth"); }}
           className="text-xs text-destructive font-medium px-3 py-1.5 rounded-lg border border-destructive/30"
         >
           Logout
