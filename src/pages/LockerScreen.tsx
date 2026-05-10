@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Gem, Landmark, TrendingUp, ArrowDownRight, Plus, Gift, Share2, Sparkles, ShieldCheck, Calendar, Award } from "lucide-react";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
+import { useHoldings } from "@/hooks/useHoldings";
 import { useMemo } from "react";
 
 const LockerScreen = () => {
@@ -10,16 +11,17 @@ const LockerScreen = () => {
   const prices = useMetalPrices();
   const isGold = type !== "silver";
 
-  // Mock holdings — wire to real data later
-  const grams = isGold ? 2.45 : 120;
+  const { gold, silver } = useHoldings();
+  const grams = isGold ? gold : silver;
   const goalGrams = isGold ? 10 : 500;
   const rate = parseFloat(isGold ? prices.gold24k : prices.silver) || 0;
   const value = grams * rate;
   const goalValue = goalGrams * rate;
   const progress = Math.min((grams / goalGrams) * 100, 100);
-  const investedAmount = isGold ? 16500 : 9200;
+  // Approx invested cost (until ledger summary hook is wired): assume current value as basis.
+  const investedAmount = value;
   const profit = value - investedAmount;
-  const profitPct = (profit / investedAmount) * 100;
+  const profitPct = investedAmount > 0 ? (profit / investedAmount) * 100 : 0;
 
   // Gold: 1 bar per gram. Silver: 1 bar per 50g. Capped for visual sanity.
   const rawCount = isGold ? Math.round(grams) : Math.floor(grams / 50);
