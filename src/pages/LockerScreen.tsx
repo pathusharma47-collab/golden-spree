@@ -171,7 +171,7 @@ const LockerScreen = () => {
                         key={it.id}
                         initial={{ y: -200, opacity: 0, rotate: 0 }}
                         animate={{
-                          y: -((it.id % 8) * 6) - 4,
+                          y: it.y - 4,
                           opacity: 1,
                           rotate: it.rotate,
                           x: it.x,
