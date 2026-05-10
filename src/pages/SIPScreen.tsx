@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Trophy, Calendar, Sparkles, TrendingUp, Pause, Play, XCircle } from "lucide-react";
+import { ArrowLeft, Trophy, Calendar, Sparkles, TrendingUp, Pause, Play, XCircle, Wallet, Coins, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSIP } from "@/contexts/SIPContext";
 import { useWallet } from "@/contexts/WalletContext";
@@ -58,14 +58,71 @@ const SIPScreen = () => {
           <p className="text-sm text-muted-foreground mt-1">Start a SIP from the Invest tab</p>
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/invest")}
+            onClick={() => navigate("/invest?metal=sip")}
             className="mt-4 px-6 py-3 rounded-xl gold-gradient text-primary-foreground font-semibold text-sm"
           >
             Browse SIP Plans
           </motion.button>
         </motion.div>
       ) : (
-        <div className="mt-6 space-y-4">
+        <>
+        {/* Portfolio Summary */}
+        {(() => {
+          const running = activeSIPs.filter(s => s.status === "active");
+          const totalInvested = activeSIPs.reduce((a, s) => a + s.totalInvested, 0);
+          const totalGold = activeSIPs.filter(s => s.metal === "gold").reduce((a, s) => a + s.totalGrams, 0);
+          const totalSilver = activeSIPs.filter(s => s.metal === "silver").reduce((a, s) => a + s.totalGrams, 0);
+          const upcoming = running
+            .map(s => new Date(s.nextDueDate))
+            .sort((a, b) => a.getTime() - b.getTime())[0];
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 relative overflow-hidden rounded-2xl p-5 gold-gradient text-primary-foreground shadow-lg"
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider opacity-80">Total Invested</p>
+                    <p className="font-display text-3xl font-bold mt-1">₹{totalInvested.toLocaleString("en-IN")}</p>
+                  </div>
+                  <div className="w-11 h-11 rounded-full bg-white/15 backdrop-blur flex items-center justify-center">
+                    <Wallet size={20} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mt-5">
+                  <div className="rounded-xl bg-white/10 backdrop-blur p-2.5">
+                    <p className="text-[10px] opacity-80">Active</p>
+                    <p className="text-sm font-bold">{running.length}/{activeSIPs.length}</p>
+                  </div>
+                  <div className="rounded-xl bg-white/10 backdrop-blur p-2.5">
+                    <p className="text-[10px] opacity-80">Gold</p>
+                    <p className="text-sm font-bold">{totalGold.toFixed(3)}g</p>
+                  </div>
+                  <div className="rounded-xl bg-white/10 backdrop-blur p-2.5">
+                    <p className="text-[10px] opacity-80">Silver</p>
+                    <p className="text-sm font-bold">{totalSilver.toFixed(2)}g</p>
+                  </div>
+                </div>
+                {upcoming && (
+                  <div className="mt-4 flex items-center gap-2 text-xs opacity-95">
+                    <Calendar size={13} />
+                    <span>Next installment due {upcoming.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })()}
+
+        <div className="mt-5 flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your Plans</p>
+          <button onClick={() => navigate("/invest?metal=sip")} className="text-xs font-semibold text-primary">+ Add Plan</button>
+        </div>
+
+        <div className="mt-3 space-y-4">
           {activeSIPs.map((sip, i) => {
             const progress = (sip.completedMonths / sip.duration) * 100;
             const isComplete = sip.completedMonths >= sip.duration || sip.status === "completed";
@@ -228,6 +285,7 @@ const SIPScreen = () => {
             );
           })}
         </div>
+        </>
       )}
     </div>
   );
