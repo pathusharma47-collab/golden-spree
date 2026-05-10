@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface WalletTransaction {
@@ -12,128 +13,147 @@ export interface WalletTransaction {
 interface WalletContextType {
   balance: number;
   transactions: WalletTransaction[];
-  addFunds: (amount: number) => void;
-  withdraw: (amount: number) => boolean;
-  deductForInvestment: (amount: number, metalType: string, grams: string) => boolean;
+  loading: boolean;
   isNewUser: boolean;
+  addFunds: (amount: number, description?: string) => Promise<void>;
+  withdraw: (amount: number, description?: string) => Promise<boolean>;
+  deductForInvestment: (amount: number, metalType: string, grams: string) => Promise<boolean>;
+  refresh: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType>({
   balance: 0,
   transactions: [],
-  addFunds: () => {},
-  withdraw: () => false,
-  deductForInvestment: () => false,
+  loading: true,
   isNewUser: false,
+  addFunds: async () => {},
+  withdraw: async () => false,
+  deductForInvestment: async () => false,
+  refresh: async () => {},
 });
 
 export const useWallet = () => useContext(WalletContext);
 
-const getStorageKey = (email: string) => `wallet_${email}`;
-const getTxKey = (email: string) => `wallet_tx_${email}`;
-const getBonusKey = (email: string) => `wallet_bonus_${email}`;
-
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const storageKey = user ? getStorageKey(user.email) : "";
-  const txKey = user ? getTxKey(user.email) : "";
-  const bonusKey = user ? getBonusKey(user.email) : "";
-
+  const [balance, setBalance] = useState(0);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isNewUser, setIsNewUser] = useState(false);
 
-  const [balance, setBalance] = useState<number>(() => {
-    if (!storageKey) return 0;
-    return parseFloat(localStorage.getItem(storageKey) || "0");
-  });
-
-  const [transactions, setTransactions] = useState<WalletTransaction[]>(() => {
-    if (!txKey) return [];
-    const stored = localStorage.getItem(txKey);
-    return stored ? JSON.parse(stored) : [];
-  });
-
-  // Re-sync when user changes + apply welcome bonus for new users
-  useEffect(() => {
-    if (!storageKey) { setBalance(0); setTransactions([]); setIsNewUser(false); return; }
-
-    const existingBal = localStorage.getItem(storageKey);
-    const bonusApplied = localStorage.getItem(bonusKey);
-
-    if (!existingBal && !bonusApplied) {
-      // New user — give ₹100 welcome bonus
-      const tx: WalletTransaction = {
-        id: Date.now().toString(),
-        type: "credit",
-        amount: 100,
-        description: "🎁 Welcome Bonus",
-        date: new Date().toISOString(),
-      };
-      localStorage.setItem(storageKey, "100");
-      localStorage.setItem(txKey, JSON.stringify([tx]));
-      localStorage.setItem(bonusKey, "true");
-      setBalance(100);
-      setTransactions([tx]);
-      setIsNewUser(true);
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setBalance(0);
+      setTransactions([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const [walletRes, txRes] = await Promise.all([
+      supabase.from("wallets").select("balance, created_at").eq("user_id", user.id).maybeSingle(),
+      supabase
+        .from("wallet_transactions")
+        .select("id, type, amount, description, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+    setBalance(Number(walletRes.data?.balance ?? 0));
+    setTransactions(
+      (txRes.data ?? []).map((t) => ({
+        id: t.id,
+        type: t.type as "credit" | "debit",
+        amount: Number(t.amount),
+        description: t.description,
+        date: t.created_at,
+      })),
+    );
+    // "New user" flag = wallet created in last 30s
+    if (walletRes.data?.created_at) {
+      const ageMs = Date.now() - new Date(walletRes.data.created_at).getTime();
+      setIsNewUser(ageMs < 30_000);
     } else {
-      setBalance(parseFloat(localStorage.getItem(storageKey) || "0"));
-      const stored = localStorage.getItem(txKey);
-      setTransactions(stored ? JSON.parse(stored) : []);
       setIsNewUser(false);
     }
-  }, [storageKey, txKey, bonusKey]);
+    setLoading(false);
+  }, [user]);
 
-  const persist = useCallback((newBal: number, newTx: WalletTransaction[]) => {
-    if (!storageKey) return;
-    localStorage.setItem(storageKey, String(newBal));
-    localStorage.setItem(txKey, JSON.stringify(newTx));
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // Realtime: listen for wallet changes (e.g. from spin reward, edge functions)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`wallet-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "wallets", filter: `user_id=eq.${user.id}` },
+        () => refresh(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "wallet_transactions", filter: `user_id=eq.${user.id}` },
+        () => refresh(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refresh]);
+
+  const adjustWallet = async (
+    delta: number,
+    txType: "credit" | "debit",
+    description: string,
+  ): Promise<boolean> => {
+    if (!user) return false;
+    const newBal = balance + delta;
+    if (newBal < 0) return false;
+    const { error: walletErr } = await supabase
+      .from("wallets")
+      .update({ balance: newBal })
+      .eq("user_id", user.id);
+    if (walletErr) return false;
+    await supabase.from("wallet_transactions").insert({
+      user_id: user.id,
+      type: txType,
+      amount: Math.abs(delta),
+      description,
+    });
     setBalance(newBal);
-    setTransactions(newTx);
-  }, [storageKey, txKey]);
-
-  const addTx = (txs: WalletTransaction[], tx: WalletTransaction) => [tx, ...txs].slice(0, 50);
-
-  const addFunds = useCallback((amount: number) => {
-    const newBal = balance + amount;
-    const tx: WalletTransaction = {
-      id: Date.now().toString(),
-      type: "credit",
-      amount,
-      description: "Added funds to wallet",
-      date: new Date().toISOString(),
-    };
-    persist(newBal, addTx(transactions, tx));
-  }, [balance, transactions, persist]);
-
-  const withdraw = useCallback((amount: number): boolean => {
-    if (amount > balance) return false;
-    const newBal = balance - amount;
-    const tx: WalletTransaction = {
-      id: Date.now().toString(),
-      type: "debit",
-      amount,
-      description: "Withdrawn to bank",
-      date: new Date().toISOString(),
-    };
-    persist(newBal, addTx(transactions, tx));
+    await refresh();
     return true;
-  }, [balance, transactions, persist]);
+  };
 
-  const deductForInvestment = useCallback((amount: number, metalType: string, grams: string): boolean => {
-    if (amount > balance) return false;
-    const newBal = balance - amount;
-    const tx: WalletTransaction = {
-      id: Date.now().toString(),
-      type: "debit",
-      amount,
-      description: `Invested in ${metalType} (${grams}g)`,
-      date: new Date().toISOString(),
-    };
-    persist(newBal, addTx(transactions, tx));
-    return true;
-  }, [balance, transactions, persist]);
+  const addFunds = useCallback(
+    async (amount: number, description = "Added funds to wallet") => {
+      await adjustWallet(amount, "credit", description);
+    },
+    [balance, user],
+  );
+
+  const withdraw = useCallback(
+    async (amount: number, description = "Withdrawn to bank"): Promise<boolean> => {
+      if (amount > balance) return false;
+      return adjustWallet(-amount, "debit", description);
+    },
+    [balance, user],
+  );
+
+  const deductForInvestment = useCallback(
+    async (amount: number, metalType: string, grams: string): Promise<boolean> => {
+      if (amount > balance) return false;
+      return adjustWallet(-amount, "debit", `Invested in ${metalType} (${grams}g)`);
+    },
+    [balance, user],
+  );
 
   return (
-    <WalletContext.Provider value={{ balance, transactions, addFunds, withdraw, deductForInvestment, isNewUser }}>
+    <WalletContext.Provider
+      value={{ balance, transactions, loading, isNewUser, addFunds, withdraw, deductForInvestment, refresh }}
+    >
       {children}
     </WalletContext.Provider>
   );
