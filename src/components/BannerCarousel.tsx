@@ -10,8 +10,11 @@ interface Banner {
   title: string;
 }
 
+// Module-level cache so banners appear instantly when re-mounting (e.g. switching tabs)
+let cachedBanners: Banner[] = [];
+
 const BannerCarousel = () => {
-  const [banners, setBanners] = useState<Banner[]>([]);
+  const [banners, setBanners] = useState<Banner[]>(cachedBanners);
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -24,6 +27,7 @@ const BannerCarousel = () => {
         .order("sort_order", { ascending: true });
 
       if (!error && data) {
+        cachedBanners = data;
         setBanners(data);
       }
     };
