@@ -209,7 +209,7 @@ const InvestScreen = () => {
               <SwipeToConfirm
                 label={numAmount > 0 ? `Swipe to Invest ₹${numAmount.toLocaleString("en-IN")}` : "Enter amount to invest"}
                 onConfirm={handleInvest}
-                disabled={!(numAmount > 0 && numAmount <= balance)}
+                disabled={busy || !(numAmount > 0 && numAmount <= balance)}
                 icon={ArrowRight}
                 variant={tab === "silver" ? "silver" : "gold"}
               />
@@ -376,7 +376,7 @@ const InvestScreen = () => {
                   <SwipeToConfirm
                     label={`Swipe to Start SIP — ₹${selectedPlan.monthlyAmount.toLocaleString("en-IN")}/mo`}
                     onConfirm={() => handleEnrollSIP(selectedPlan)}
-                    disabled={selectedPlan.monthlyAmount > balance}
+                    disabled={busy || selectedPlan.monthlyAmount > balance}
                     icon={ArrowRight}
                     variant={selectedPlan.metal === "silver" ? "silver" : "gold"}
                   />
