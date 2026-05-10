@@ -5,6 +5,7 @@ import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { usePriceFreshness } from "@/hooks/usePriceFreshness";
 import { useAuth } from "@/contexts/AuthContext";
 import { useKYC } from "@/hooks/useKYC";
+import { useHoldings } from "@/hooks/useHoldings";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.jpg";
 
@@ -21,9 +22,9 @@ const Dashboard = () => {
 
   const gold24kRate = parseFloat(prices.gold24k) || 0;
   const silverRate = parseFloat(prices.silver) || 0;
-  const goldGrams = 2.45;
-  const silverGrams = 120;
-  const totalValue = goldGrams * gold24kRate + silverGrams * silverRate;
+  const { gold: goldGrams, silver: silverGrams } = useHoldings();
+  const goldValue = goldGrams * gold24kRate;
+  const silverValue = silverGrams * silverRate;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -141,10 +142,10 @@ const Dashboard = () => {
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Gold Locker</p>
             </div>
             <p className="text-2xl font-display font-bold text-foreground mt-2">
-              {goldGrams}<span className="text-sm text-muted-foreground ml-1">gm</span>
+              {goldGrams.toFixed(goldGrams < 1 ? 4 : 2)}<span className="text-sm text-muted-foreground ml-1">gm</span>
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              ≈ ₹{totalValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+              ≈ ₹{goldValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
             <div className="mt-3 flex gap-1">
               {[...Array(5)].map((_, i) => (
@@ -168,10 +169,10 @@ const Dashboard = () => {
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Silver Locker</p>
             </div>
             <p className="text-2xl font-display font-bold text-foreground mt-2">
-              {silverGrams}<span className="text-sm text-muted-foreground ml-1">gm</span>
+              {silverGrams.toFixed(silverGrams < 1 ? 4 : 2)}<span className="text-sm text-muted-foreground ml-1">gm</span>
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              ≈ ₹{(silverGrams * silverRate).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+              ≈ ₹{silverValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
             <div className="mt-3 flex gap-1">
               {[...Array(5)].map((_, i) => (
