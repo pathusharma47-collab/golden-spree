@@ -21,8 +21,9 @@ const LockerScreen = () => {
   const profit = value - investedAmount;
   const profitPct = (profit / investedAmount) * 100;
 
-  // One bar per gram (rounded), capped for visual sanity
-  const itemCount = Math.max(1, Math.min(40, Math.round(grams)));
+  // Gold: 1 bar per gram. Silver: 1 bar per 50g. Capped for visual sanity.
+  const rawCount = isGold ? Math.round(grams) : Math.floor(grams / 50);
+  const itemCount = Math.max(1, Math.min(40, rawCount));
   const items = useMemo(
     () => Array.from({ length: itemCount }).map((_, i) => ({
       id: i,
