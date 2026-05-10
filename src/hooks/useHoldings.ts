@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface Holdings {
   gold: number;
   silver: number;
+  goldInvested: number;
+  silverInvested: number;
   loading: boolean;
   refresh: () => Promise<void>;
 }
@@ -13,6 +15,8 @@ export const useHoldings = (): Holdings => {
   const { user } = useAuth();
   const [gold, setGold] = useState(0);
   const [silver, setSilver] = useState(0);
+  const [goldInvested, setGoldInvested] = useState(0);
+  const [silverInvested, setSilverInvested] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -23,18 +27,31 @@ export const useHoldings = (): Holdings => {
       return;
     }
     setLoading(true);
-    const { data } = await supabase
-      .from("holdings")
-      .select("metal, grams")
-      .eq("user_id", user.id);
+    const [holdingsRes, txRes] = await Promise.all([
+      supabase.from("holdings").select("metal, grams").eq("user_id", user.id),
+      supabase
+        .from("investment_transactions")
+        .select("metal, amount_inr, type")
+        .eq("user_id", user.id)
+        .in("type", ["buy", "sip"]),
+    ]);
     let g = 0;
     let s = 0;
-    for (const row of data ?? []) {
+    for (const row of holdingsRes.data ?? []) {
       if (row.metal === "gold") g += Number(row.grams);
       else if (row.metal === "silver") s += Number(row.grams);
     }
+    let gi = 0;
+    let si = 0;
+    for (const row of txRes.data ?? []) {
+      const amt = Number(row.amount_inr) || 0;
+      if (row.metal === "gold") gi += amt;
+      else if (row.metal === "silver") si += amt;
+    }
     setGold(g);
     setSilver(s);
+    setGoldInvested(gi);
+    setSilverInvested(si);
     setLoading(false);
   }, [user]);
 
@@ -58,5 +75,5 @@ export const useHoldings = (): Holdings => {
     };
   }, [user, refresh]);
 
-  return { gold, silver, loading, refresh };
+  return { gold, silver, goldInvested, silverInvested, loading, refresh };
 };
