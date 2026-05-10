@@ -14,7 +14,7 @@ const SIPScreen = () => {
   const { balance, deductForInvestment } = useWallet();
   const prices = useMetalPrices();
 
-  const handlePayInstallment = (sip: typeof activeSIPs[0]) => {
+  const handlePayInstallment = async (sip: typeof activeSIPs[0]) => {
     if (sip.completedMonths >= sip.duration) {
       toast.info("SIP completed!", { description: "This SIP is already fully paid" });
       return;
@@ -27,12 +27,14 @@ const SIPScreen = () => {
     const investable = sip.monthlyAmount - sip.monthlyAmount * GST_RATE;
     const grams = parseFloat((investable / rate).toFixed(4));
 
-    const ok = deductForInvestment(sip.monthlyAmount, sip.metal, String(grams));
+    const ok = await deductForInvestment(sip.monthlyAmount, sip.metal, String(grams), rate, "sip");
     if (ok) {
-      payInstallment(sip.id, grams);
+      await payInstallment(sip.id, grams);
       toast.success(`Installment paid for ${sip.planName}`, {
         description: `₹${sip.monthlyAmount} deducted — ${grams}g ${sip.metal} added`,
       });
+    } else {
+      toast.error("Payment failed", { description: "Please try again" });
     }
   };
 
