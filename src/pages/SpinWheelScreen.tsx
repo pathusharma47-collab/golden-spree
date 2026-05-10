@@ -4,6 +4,7 @@ import { ArrowLeft, Sparkles, Gift, X, RotateCcw, Zap, History } from "lucide-re
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const SEGMENTS = [
   { label: "0.001g\nGold", value: 0.001, color: "#E5A100", textColor: "#fff", type: "gold", icon: "🥇" },
@@ -16,8 +17,6 @@ const SEGMENTS = [
   { label: "Try\nAgain", value: 0, color: "#D6D1C8", textColor: "#666", type: "retry", icon: "🔄" },
 ];
 
-const SPIN_KEY_PREFIX = "spin_last_";
-const REWARD_HISTORY_KEY = "spin_rewards_";
 const LIGHT_COUNT = 24;
 
 interface RewardEntry {
@@ -33,8 +32,6 @@ const SpinWheelScreen = () => {
   const { addFunds } = useWallet();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const spinKey = user ? `${SPIN_KEY_PREFIX}${user.email}` : "";
-  const historyKey = user ? `${REWARD_HISTORY_KEY}${user.email}` : "";
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<typeof SEGMENTS[0] | null>(null);
@@ -43,11 +40,7 @@ const SpinWheelScreen = () => {
   const [timeLeft, setTimeLeft] = useState("");
   const [spinsLeft, setSpinsLeft] = useState(1);
   const [activeLights, setActiveLights] = useState(0);
-  const [rewardHistory, setRewardHistory] = useState<RewardEntry[]>(() => {
-    if (!user) return [];
-    const stored = localStorage.getItem(`${REWARD_HISTORY_KEY}${user.email}`);
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [rewardHistory, setRewardHistory] = useState<RewardEntry[]>([]);
 
   // Animated lights
   useEffect(() => {
@@ -58,27 +51,77 @@ const SpinWheelScreen = () => {
   }, []);
 
   useEffect(() => {
-    if (!spinKey) return;
-    const checkSpin = () => {
-      const last = localStorage.getItem(spinKey);
-      if (!last) { setCanSpin(true); setTimeLeft(""); return; }
-      const lastDate = new Date(last);
-      const now = new Date();
-      const nextSpin = new Date(lastDate);
-      nextSpin.setHours(24, 0, 0, 0);
-      if (now >= nextSpin) { setCanSpin(true); setTimeLeft(""); }
-      else {
-        setCanSpin(false);
-        const diff = nextSpin.getTime() - now.getTime();
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        setTimeLeft(`${h}h ${m}m`);
+    if (!user?.id) return;
+    let cancelled = false;
+
+    const load = async () => {
+      // Pull recent history (last 5)
+      const { data } = await supabase
+        .from("spin_history")
+        .select("reward_label, reward_amount, spun_on, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (cancelled) return;
+
+      if (data) {
+        const mapped: RewardEntry[] = data.map((d: any) => {
+          const label = d.reward_label || "";
+          const amount = Number(d.reward_amount) || 0;
+          let type = "none";
+          if (label.toLowerCase().includes("gold")) type = "gold";
+          else if (label.toLowerCase().includes("silver")) type = "silver";
+          else if (label.toLowerCase().includes("retry") || label.toLowerCase().includes("again")) type = "retry";
+          else if (amount > 0) type = "cash";
+          const seg = SEGMENTS.find((s) => s.label.replace("\n", " ") === label.replace("\n", " "));
+          return {
+            label: label.replace("\n", " "),
+            icon: seg?.icon || "🎁",
+            type,
+            date: d.created_at,
+          };
+        });
+        setRewardHistory(mapped);
       }
     };
+
+    const checkSpin = () => {
+      // Today's date in user's local TZ as YYYY-MM-DD
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      supabase
+        .from("spin_history")
+        .select("id, spun_on")
+        .eq("user_id", user.id)
+        .eq("spun_on", todayStr)
+        .limit(1)
+        .then(({ data }) => {
+          if (cancelled) return;
+          if (data && data.length > 0) {
+            setCanSpin(false);
+            const next = new Date();
+            next.setHours(24, 0, 0, 0);
+            const diff = next.getTime() - Date.now();
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            setTimeLeft(`${h}h ${m}m`);
+          } else {
+            setCanSpin(true);
+            setTimeLeft("");
+          }
+        });
+    };
+
+    load();
     checkSpin();
     const interval = setInterval(checkSpin, 60000);
-    return () => clearInterval(interval);
-  }, [spinKey]);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [user?.id]);
 
   const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
@@ -204,39 +247,42 @@ const SpinWheelScreen = () => {
       setResult(won);
       setShowResult(true);
 
+      const cashValue =
+        won.type === "cash" ? won.value :
+        won.type === "gold" ? won.value * 7150 :
+        won.type === "silver" ? won.value * 90 : 0;
+
       if (won.type === "retry") {
         setSpinsLeft((prev) => prev + 1);
       } else {
         setSpinsLeft((prev) => {
           const next = prev - 1;
-          if (next <= 0) {
-            if (spinKey) localStorage.setItem(spinKey, new Date().toISOString());
-            setCanSpin(false);
-          }
+          if (next <= 0) setCanSpin(false);
           return next;
         });
 
-        if (won.value > 0) {
-          if (won.type === "cash") {
-            addFunds(won.value);
-          } else if (won.type === "gold") {
-            addFunds(won.value * 7150);
-          } else if (won.type === "silver") {
-            addFunds(won.value * 90);
-          }
+        if (cashValue > 0) addFunds(cashValue);
+
+        // Persist this spin to Supabase (only when it counts toward the daily limit)
+        if (user?.id) {
+          supabase.from("spin_history").insert({
+            user_id: user.id,
+            reward_label: won.label.replace("\n", " "),
+            reward_amount: cashValue,
+          }).then(({ error }) => {
+            if (error) console.error("spin_history insert failed", error);
+          });
         }
       }
 
-      // Save to reward history
+      // Save to local reward history list (UI only)
       const entry: RewardEntry = {
         label: won.label.replace("\n", " "),
         icon: won.icon,
         type: won.type,
         date: new Date().toISOString(),
       };
-      const updated = [entry, ...rewardHistory].slice(0, 5);
-      setRewardHistory(updated);
-      if (historyKey) localStorage.setItem(historyKey, JSON.stringify(updated));
+      setRewardHistory((prev) => [entry, ...prev].slice(0, 5));
     }, 4000);
   };
 
