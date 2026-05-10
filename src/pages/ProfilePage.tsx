@@ -88,7 +88,7 @@ const ProfilePage = () => {
 
         <p className="text-xs font-medium text-muted-foreground px-1 mb-2 mt-4">Settings</p>
         <button
-          onClick={() => { logout(); navigate("/login"); }}
+          onClick={async () => { await logout(); navigate("/auth"); }}
           className="w-full glass-card p-4 flex items-center gap-3 text-destructive active:scale-[0.98] transition-transform"
         >
           <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">

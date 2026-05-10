@@ -13,7 +13,8 @@ import RedeemScreen from "./pages/RedeemScreen";
 import SIPScreen from "./pages/SIPScreen";
 import GiftScreen from "./pages/GiftScreen";
 import TransactionsScreen from "./pages/TransactionsScreen";
-import LoginPage from "./pages/LoginPage";
+import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import WalletPage from "./pages/WalletPage";
@@ -32,26 +33,31 @@ import BottomNav from "./components/BottomNav";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAdmin } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
+  const { user, isAdmin, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/auth" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
 
   return (
     <>
       <AnimatePresence mode="wait">
         <Routes>
-          <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+          <Route path="/login" element={<Navigate to="/auth" replace />} />
+          <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/index" element={<Navigate to="/" replace />} />
           <Route path="/invest" element={<ProtectedRoute><InvestScreen /></ProtectedRoute>} />

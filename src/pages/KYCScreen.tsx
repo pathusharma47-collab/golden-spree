@@ -104,6 +104,7 @@ const KYCScreen = () => {
     try {
       const { error } = await supabase.from("kyc_details").upsert(
         {
+          user_id: user.id,
           user_email: user.email,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
@@ -111,7 +112,7 @@ const KYCScreen = () => {
           date_of_birth: dob,
           status: "verified",
         },
-        { onConflict: "user_email" }
+        { onConflict: "user_id" }
       );
 
       if (error) throw error;
