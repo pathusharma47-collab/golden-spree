@@ -17,7 +17,13 @@ interface WalletContextType {
   isNewUser: boolean;
   addFunds: (amount: number, description?: string) => Promise<void>;
   withdraw: (amount: number, description?: string) => Promise<boolean>;
-  deductForInvestment: (amount: number, metalType: string, grams: string) => Promise<boolean>;
+  deductForInvestment: (
+    amount: number,
+    metalType: "gold" | "silver",
+    grams: string,
+    rate?: number,
+    source?: "buy" | "sip",
+  ) => Promise<boolean>;
   refresh: () => Promise<void>;
 }
 
@@ -143,9 +149,69 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 
   const deductForInvestment = useCallback(
-    async (amount: number, metalType: string, grams: string): Promise<boolean> => {
+    async (
+      amount: number,
+      metalType: "gold" | "silver",
+      grams: string,
+      rate?: number,
+      source: "buy" | "sip" = "buy",
+    ): Promise<boolean> => {
+      if (!user) return false;
       if (amount > balance) return false;
-      return adjustWallet(-amount, "debit", `Invested in ${metalType} (${grams}g)`);
+
+      const gramsNum = parseFloat(grams) || 0;
+      const gst = +(amount * 0.03).toFixed(2);
+      const metalValue = +(amount - gst).toFixed(2);
+
+      // 1. Wallet debit
+      const debitOk = await adjustWallet(
+        -amount,
+        "debit",
+        `Invested in ${metalType} (${grams}g) · ₹${metalValue} + ₹${gst} GST`,
+      );
+      if (!debitOk) return false;
+
+      // 2. Upsert holdings (sum grams)
+      try {
+        const { data: existing } = await supabase
+          .from("holdings")
+          .select("id, grams")
+          .eq("user_id", user.id)
+          .eq("metal", metalType)
+          .maybeSingle();
+
+        if (existing) {
+          await supabase
+            .from("holdings")
+            .update({ grams: Number(existing.grams) + gramsNum })
+            .eq("id", existing.id);
+        } else {
+          await supabase.from("holdings").insert({
+            user_id: user.id,
+            metal: metalType,
+            grams: gramsNum,
+          });
+        }
+      } catch (err) {
+        console.error("Holdings update failed", err);
+      }
+
+      // 3. Investment ledger row
+      try {
+        await supabase.from("investment_transactions").insert({
+          user_id: user.id,
+          type: source === "sip" ? "sip" : "buy",
+          metal: metalType,
+          grams: gramsNum,
+          amount_inr: amount,
+          gst_amount: gst,
+          rate: rate ?? null,
+        });
+      } catch (err) {
+        console.error("Investment tx insert failed", err);
+      }
+
+      return true;
     },
     [balance, user],
   );

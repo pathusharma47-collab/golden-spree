@@ -16,6 +16,7 @@ const InvestScreen = () => {
   const [tab, setTab] = useState<Tab>("gold");
   const [amount, setAmount] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<SIPPlan | null>(null);
+  const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prices = useMetalPrices();
@@ -37,22 +38,31 @@ const InvestScreen = () => {
   const investable = numAmount - gst;
   const grams = investable > 0 ? (investable / rate).toFixed(4) : "0.0000";
 
-  const handleInvest = () => {
+  const handleInvest = async () => {
+    if (busy) return;
     if (numAmount <= 0) { toast.error("Enter a valid amount"); return; }
     if (numAmount > balance) {
       toast.error("Insufficient wallet balance", { description: "Add funds to your wallet first" });
       return;
     }
-    const ok = deductForInvestment(numAmount, metal, grams);
-    if (ok) {
-      toast.success(`Invested ₹${numAmount.toLocaleString("en-IN")} in ${metal}`, {
-        description: `You received ${grams}g of ${metal}`,
-      });
-      setAmount("");
+    setBusy(true);
+    try {
+      const ok = await deductForInvestment(numAmount, metal, grams, rate, "buy");
+      if (ok) {
+        toast.success(`Invested ₹${numAmount.toLocaleString("en-IN")} in ${metal}`, {
+          description: `You received ${grams}g · GST ₹${gst.toFixed(2)} included`,
+        });
+        setAmount("");
+      } else {
+        toast.error("Investment failed", { description: "Please try again" });
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleEnrollSIP = (plan: SIPPlan) => {
+  const handleEnrollSIP = async (plan: SIPPlan) => {
+    if (busy) return;
     const alreadyEnrolled = activeSIPs.some(s => s.planId === plan.id);
     if (alreadyEnrolled) {
       toast.error("Already enrolled", { description: `You're already enrolled in ${plan.name}` });
@@ -62,15 +72,22 @@ const InvestScreen = () => {
       toast.error("Insufficient balance", { description: `You need ₹${plan.monthlyAmount} to start this SIP` });
       return;
     }
-    // Deduct first installment
-    const sipGrams = ((plan.monthlyAmount - plan.monthlyAmount * GST_RATE) / (plan.metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver))).toFixed(4);
-    const ok = deductForInvestment(plan.monthlyAmount, plan.metal, sipGrams);
-    if (ok) {
-      enrollInSIP(plan, parseFloat(sipGrams));
-      toast.success(`Enrolled in ${plan.name}!`, {
-        description: `First installment of ₹${plan.monthlyAmount} paid. Check SIP tab for progress.`,
-      });
-      setSelectedPlan(null);
+    setBusy(true);
+    try {
+      const sipRate = plan.metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver);
+      const sipGrams = ((plan.monthlyAmount - plan.monthlyAmount * GST_RATE) / sipRate).toFixed(4);
+      const ok = await deductForInvestment(plan.monthlyAmount, plan.metal, sipGrams, sipRate, "sip");
+      if (ok) {
+        await enrollInSIP(plan, parseFloat(sipGrams));
+        toast.success(`Enrolled in ${plan.name}!`, {
+          description: `First installment of ₹${plan.monthlyAmount} paid. Check SIP tab for progress.`,
+        });
+        setSelectedPlan(null);
+      } else {
+        toast.error("Enrollment failed", { description: "Please try again" });
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -192,7 +209,7 @@ const InvestScreen = () => {
               <SwipeToConfirm
                 label={numAmount > 0 ? `Swipe to Invest ₹${numAmount.toLocaleString("en-IN")}` : "Enter amount to invest"}
                 onConfirm={handleInvest}
-                disabled={!(numAmount > 0 && numAmount <= balance)}
+                disabled={busy || !(numAmount > 0 && numAmount <= balance)}
                 icon={ArrowRight}
                 variant={tab === "silver" ? "silver" : "gold"}
               />
@@ -359,7 +376,7 @@ const InvestScreen = () => {
                   <SwipeToConfirm
                     label={`Swipe to Start SIP — ₹${selectedPlan.monthlyAmount.toLocaleString("en-IN")}/mo`}
                     onConfirm={() => handleEnrollSIP(selectedPlan)}
-                    disabled={selectedPlan.monthlyAmount > balance}
+                    disabled={busy || selectedPlan.monthlyAmount > balance}
                     icon={ArrowRight}
                     variant={selectedPlan.metal === "silver" ? "silver" : "gold"}
                   />
