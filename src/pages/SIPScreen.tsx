@@ -256,6 +256,20 @@ const SIPScreen = () => {
                       <Calendar size={12} className="text-muted-foreground" />
                       <p className="text-[10px] text-muted-foreground">Complete all {sip.duration} months to earn {sip.bonusReward}</p>
                     </div>
+                    <div className="mt-3 p-2.5 rounded-lg border border-border/40 space-y-1">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-muted-foreground">Installment</span>
+                        <span className="text-foreground font-medium">₹{sip.monthlyAmount.toLocaleString("en-IN")}</span>
+                      </div>
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-muted-foreground">GST (3%)</span>
+                        <span className="text-muted-foreground">₹{(sip.monthlyAmount * GST_RATE).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-muted-foreground">Invested in {sip.metal}</span>
+                        <span className="text-foreground font-medium">₹{(sip.monthlyAmount - sip.monthlyAmount * GST_RATE).toFixed(2)}</span>
+                      </div>
+                    </div>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handlePayInstallment(sip)}
