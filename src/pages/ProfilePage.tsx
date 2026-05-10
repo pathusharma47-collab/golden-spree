@@ -1,11 +1,15 @@
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { User, Shield, LogOut, ChevronRight, FileText, Lock, RefreshCcw, Truck } from "lucide-react";
+import { User, Shield, LogOut, ChevronRight, FileText, Lock, RefreshCcw, Truck, Coins, Receipt } from "lucide-react";
+import { useHoldings } from "@/hooks/useHoldings";
+import { formatINR, formatGrams } from "@/lib/format";
 
 const ProfilePage = () => {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { gold, silver, goldInvested, silverInvested } = useHoldings();
+  const totalInvested = goldInvested + silverInvested;
 
   return (
     <div className="min-h-screen pb-28 px-4 pt-6">
@@ -32,6 +36,47 @@ const ProfilePage = () => {
             {isAdmin ? "Admin" : "User"}
           </span>
         </div>
+      </motion.div>
+
+      {/* Holdings Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="mb-6"
+      >
+        <p className="text-xs font-medium text-muted-foreground px-1 mb-2">Your Holdings</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="glass-card p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Coins size={14} className="text-primary" />
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Gold</p>
+            </div>
+            <p className="text-base font-display font-bold text-foreground">{formatGrams(gold)}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Invested {formatINR(goldInvested)}</p>
+          </div>
+          <div className="glass-card p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Coins size={14} className="text-muted-foreground" />
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Silver</p>
+            </div>
+            <p className="text-base font-display font-bold text-foreground">{formatGrams(silver)}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Invested {formatINR(silverInvested)}</p>
+          </div>
+        </div>
+        <button
+          onClick={() => navigate("/transactions")}
+          className="w-full glass-card p-3 mt-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Receipt size={16} className="text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-foreground">View all transactions</p>
+            <p className="text-[11px] text-muted-foreground">Total invested {formatINR(totalInvested)}</p>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </button>
       </motion.div>
 
       {/* Admin Options */}
