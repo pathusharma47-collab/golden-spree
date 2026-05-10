@@ -90,7 +90,6 @@ const InvestScreen = () => {
       setBusy(false);
     }
   };
-  };
 
   const enrolledPlanIds = activeSIPs.map(s => s.planId);
 
