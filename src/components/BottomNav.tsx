@@ -1,11 +1,11 @@
-import { Home, TrendingUp, Gift, Wallet, User } from "lucide-react";
+import { Home, TrendingUp, Repeat, Wallet, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const tabs = [
   { icon: Home, label: "Home", path: "/" },
   { icon: TrendingUp, label: "Invest", path: "/invest" },
-  { icon: Gift, label: "Rewards", path: "/gift" },
+  { icon: Repeat, label: "SIP", path: "/sip" },
   { icon: Wallet, label: "Wallet", path: "/wallet" },
   { icon: User, label: "Profile", path: "/profile" },
 ];

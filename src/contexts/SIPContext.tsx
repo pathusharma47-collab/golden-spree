@@ -86,7 +86,7 @@ export const SIP_PLANS: SIPPlan[] = [
 
 interface SIPContextType {
   activeSIPs: ActiveSIP[];
-  enrollInSIP: (plan: SIPPlan) => void;
+  enrollInSIP: (plan: SIPPlan, firstInstallmentGrams?: number) => void;
   payInstallment: (sipId: string, grams: number) => boolean;
   pauseSIP: (sipId: string) => void;
   resumeSIP: (sipId: string) => void;
