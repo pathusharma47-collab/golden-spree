@@ -337,6 +337,22 @@ const InvestScreen = () => {
                     <p className="text-xs text-primary font-semibold">🎁 Reward: {selectedPlan.bonusReward}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Complete all {selectedPlan.duration} months to earn your bonus</p>
                   </div>
+
+                  {/* GST Breakdown */}
+                  <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Monthly Installment</span>
+                      <span className="text-foreground font-medium">₹{selectedPlan.monthlyAmount.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">GST (3%)</span>
+                      <span className="text-muted-foreground">₹{(selectedPlan.monthlyAmount * GST_RATE).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Invested in {selectedPlan.metal}</span>
+                      <span className="text-foreground font-medium">₹{(selectedPlan.monthlyAmount - selectedPlan.monthlyAmount * GST_RATE).toFixed(2)}</span>
+                    </div>
+                  </div>
                 </motion.div>
 
                 <div className="mt-6">
