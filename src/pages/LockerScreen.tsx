@@ -11,15 +11,14 @@ const LockerScreen = () => {
   const prices = useMetalPrices();
   const isGold = type !== "silver";
 
-  const { gold, silver } = useHoldings();
+  const { gold, silver, goldInvested, silverInvested } = useHoldings();
   const grams = isGold ? gold : silver;
   const goalGrams = isGold ? 10 : 500;
   const rate = parseFloat(isGold ? prices.gold24k : prices.silver) || 0;
   const value = grams * rate;
   const goalValue = goalGrams * rate;
   const progress = Math.min((grams / goalGrams) * 100, 100);
-  // Approx invested cost (until ledger summary hook is wired): assume current value as basis.
-  const investedAmount = value;
+  const investedAmount = isGold ? goldInvested : silverInvested;
   const profit = value - investedAmount;
   const profitPct = investedAmount > 0 ? (profit / investedAmount) * 100 : 0;
 
