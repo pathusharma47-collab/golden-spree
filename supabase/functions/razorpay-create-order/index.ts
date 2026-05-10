@@ -15,13 +15,33 @@ serve(async (req) => {
     const RAZORPAY_KEY_ID = Deno.env.get("RAZORPAY_KEY_ID");
     const RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
       throw new Error("Razorpay credentials not configured");
     }
 
-    const { amount, currency = "INR", receipt, notes, user_email, description } = await req.json();
+    // Resolve authenticated user from JWT (best-effort)
+    let user_id: string | null = null;
+    let user_email_from_jwt: string | null = null;
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader?.startsWith("Bearer ") && SUPABASE_URL && SUPABASE_ANON_KEY) {
+      try {
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const token = authHeader.replace("Bearer ", "");
+        const { data } = await sb.auth.getClaims(token);
+        if (data?.claims?.sub) {
+          user_id = data.claims.sub as string;
+          user_email_from_jwt = (data.claims.email as string) || null;
+        }
+      } catch (_) { /* noop */ }
+    }
+
+    const { amount, currency = "INR", receipt, notes, user_email: bodyEmail, description } = await req.json();
+    const user_email = user_email_from_jwt || bodyEmail || null;
 
     if (!amount || amount <= 0) {
       return new Response(
@@ -56,12 +76,13 @@ serve(async (req) => {
       );
     }
 
-    // Log the order in payment_transactions
-    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && user_email) {
+    // Log the order in payment_transactions (service role bypasses RLS)
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && (user_email || user_id)) {
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         await supabase.from("payment_transactions").insert({
-          user_email,
+          user_id,
+          user_email: user_email || "",
           order_id: order.id,
           amount,
           currency: order.currency,
