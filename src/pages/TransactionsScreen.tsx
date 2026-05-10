@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Repeat, Sparkles, Coins, Loader
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatINR, formatGrams, formatRelative } from "@/lib/format";
+import { formatINR, formatGrams, relativeTime } from "@/lib/format";
 
 type Tx = {
   id: string;
@@ -99,7 +99,7 @@ const TransactionsScreen = () => {
                 </div>
                 <div className="text-right">
                   <p className={`text-sm font-semibold ${color}`}>{sign}{formatINR(tx.amount)}</p>
-                  <p className="text-xs text-muted-foreground">{formatRelative(tx.date)}</p>
+                  <p className="text-xs text-muted-foreground">{relativeTime(tx.date)}</p>
                 </div>
               </motion.div>
             );
