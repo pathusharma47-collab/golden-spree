@@ -66,8 +66,7 @@ const InvestScreen = () => {
     const sipGrams = ((plan.monthlyAmount - plan.monthlyAmount * GST_RATE) / (plan.metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver))).toFixed(4);
     const ok = deductForInvestment(plan.monthlyAmount, plan.metal, sipGrams);
     if (ok) {
-      enrollInSIP(plan);
-      // Update the just-enrolled SIP's first installment
+      enrollInSIP(plan, parseFloat(sipGrams));
       toast.success(`Enrolled in ${plan.name}!`, {
         description: `First installment of ₹${plan.monthlyAmount} paid. Check SIP tab for progress.`,
       });

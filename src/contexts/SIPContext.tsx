@@ -128,12 +128,13 @@ export const SIPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveSIPs(sips);
   }, [sipKey]);
 
-  const enrollInSIP = useCallback((plan: SIPPlan) => {
+  const enrollInSIP = useCallback((plan: SIPPlan, firstInstallmentGrams: number = 0) => {
     const now = new Date();
     const nextDue = new Date(now);
     nextDue.setMonth(nextDue.getMonth() + 1);
     nextDue.setDate(1);
 
+    const hasFirst = firstInstallmentGrams > 0;
     const newSIP: ActiveSIP = {
       id: `${plan.id}-${Date.now()}`,
       planId: plan.id,
@@ -142,11 +143,11 @@ export const SIPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       monthlyAmount: plan.monthlyAmount,
       duration: plan.duration,
       bonusReward: plan.bonusReward,
-      completedMonths: 0,
+      completedMonths: hasFirst ? 1 : 0,
       startDate: now.toISOString(),
       nextDueDate: nextDue.toISOString(),
-      totalInvested: 0,
-      totalGrams: 0,
+      totalInvested: hasFirst ? plan.monthlyAmount : 0,
+      totalGrams: hasFirst ? firstInstallmentGrams : 0,
       status: "active",
     };
     persist([...activeSIPs, newSIP]);
