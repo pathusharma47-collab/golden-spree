@@ -1,64 +1,48 @@
-# Implementation Roadmap — All 20 Improvements
+## Continuing the multi-batch rebuild
 
-This is a multi-day overhaul. I'll deliver in 5 batches, each shippable on its own. After you approve this plan I'll start **Batch 1** immediately and report back when it's ready to test before moving to Batch 2.
-
----
-
-## Batch 1 — Real Auth + Data Migration (foundation)
-*Items #1, #4, #17 — biggest change, unblocks everything else*
-
-- Create Supabase tables: `profiles`, `wallets`, `holdings`, `transactions`, `sip_plans`, `spin_history`, `referrals`, `gifts`, `redemptions`
-- RLS policies tied to `auth.uid()` (proper per-user isolation)
-- `user_roles` table + `has_role()` function for admin
-- Seed `admin@test.com` and `user@test.com` as real auth users with their existing mock data migrated
-- Replace `AuthContext` localStorage logic with Supabase auth (`onAuthStateChange` + `getSession`)
-- Email/password + Google sign-in on `/auth`, password reset at `/reset-password`
-- Rewrite `WalletContext`, holdings hooks, SIP store, transactions store to read/write Supabase
-- Single source of truth for prices: remove all hardcoded fallbacks, always read from `metal_prices` table
-- KYC status badge on Dashboard header
-
-## Batch 2 — Trust & Correctness
-*Items #2, #3, #18*
-
-- GST (3%) line item on Swipe-to-Invest quick chips, confirmation toasts, transaction details dialog
-- Live price "updated Xs ago" indicator on Dashboard + Invest screen
-- 30-second price lock during checkout flows (snapshot price at swipe start)
-- Error boundaries per route so one broken screen doesn't blank the app
-
-## Batch 3 — UX Polish
-*Items #5, #6, #7, #8, #9, #10*
-
-- Gold locker bars: same grid layout as silver, capped count
-- Banner carousel: preload first image with `<link rel="preload">`
-- Bottom nav: stronger active state (gold pill bg) + haptic feedback on tap
-- Transactions screen: filter by type + date range
-- SIP screen: pause/skip-month controls per plan
-- Wallet auto-refresh after spin reward (event-based, no nav required)
-
-## Batch 4 — Growth Features
-*Items #11, #12, #13, #14, #15*
-
-- Price alerts: user sets threshold, notification when crossed (toast on next visit; cron-ready)
-- Goal-based investing: target gms + deadline, progress card on Dashboard
-- Family vault: shared locker tied to nominees
-- Referral leaderboard: top 10 referrers by count
-- Festival theming: Akshaya Tritiya / Diwali auto-promo banners with date logic
-
-## Batch 5 — Tech Hygiene & Delight
-*Items #16, #19, #20*
-
-- Dark mode toggle in Profile (jewellery on dark looks premium)
-- Image optimization: convert banners to WebP, add `srcset`, lazy-load below fold
-- Analytics events: track invest funnel (viewed → amount → swiped → paid), SIP signups, redemptions
+Batch 1 (real auth + data migration) is functionally complete. This plan covers the **Batch 1 tail** + **Batch 2 (Trust & Correctness)**, executed back-to-back.
 
 ---
 
-## Technical notes
-- Auth flow uses Lovable Cloud managed Google OAuth via `lovable.auth.signInWithOAuth`
-- All RLS policies use `auth.uid() = user_id` pattern; admin checks via `has_role(auth.uid(), 'admin')`
-- Memory will be updated after Batch 1 (auth model, persistence strategy, test credentials)
-- Seed migration will preserve admin/user test accounts so you can keep testing with the same logins
-- Database changes require your approval per migration — I'll batch them tightly
+### Batch 1 — Tail (finish auth migration)
 
-## What I need from you
-Approve this plan and I'll kick off Batch 1. Each batch ends with a test checkpoint so you can validate before I move on.
+1. **Razorpay edge functions** — add `user_id` to `payment_transactions` inserts in `create-razorpay-order` and `verify-razorpay-payment` (currently only `user_email`). Pull `user_id` from JWT.
+2. **KYC status badge on Dashboard** — small pill near the greeting: "KYC Verified ✓" / "Complete KYC →" linking to `/kyc`.
+3. **Admin route guard** — `AdminDashboard` currently checks email. Switch to `has_role(user.id, 'admin')` via `user_roles`.
+4. **Cleanup** — remove residual `localStorage` reads keyed by email in: `RewardsPage`, `GiftScreen`, `RedemptionScreen`, `WalletPage` history, `SpinWheel`. Migrate spin/gift/redemption writes to their new Supabase tables (`spin_history`, `gifts`, `redemptions`).
+
+---
+
+### Batch 2 — Trust & Correctness
+
+1. **GST transparency everywhere**
+   - Buy/SIP/Swipe-to-Invest: show line items → *Metal value*, *3% GST*, *Total debit*.
+   - Confirmation screens + wallet transaction descriptions store both amounts.
+   - Persist `gst_amount` on every `investment_transactions` row (column already exists).
+
+2. **Live price staleness indicator**
+   - `useMetalPrices` hook returns `updated_at`.
+   - If older than 15 min → show amber dot + tooltip "Prices updated Xm ago". Older than 1 hr → red + disable Buy CTA with toast.
+
+3. **Realtime price updates** — subscribe to `metal_prices` table changes so admin updates propagate instantly to all open clients.
+
+4. **Sell-back / redemption math fix** — currently uses live buy rate. Apply standard 2% sell-side spread (configurable constant) and show breakdown.
+
+5. **Error boundaries**
+   - Top-level `<ErrorBoundary>` in `App.tsx` with branded fallback + "Reload" CTA.
+   - Per-route boundaries on Dashboard, Invest, Wallet so one screen failing doesn't blank the app.
+
+6. **Toast consistency** — replace remaining `alert()` / inconsistent toasts with shadcn `toast` (success/error variants), and add loading states on all Buy/Sell/SIP CTAs (disable + spinner) to prevent double-submits.
+
+7. **Number/currency formatting** — central `formatINR()` and `formatGrams()` helpers; replace ad-hoc `toFixed` calls. Indian digit grouping (₹1,23,456).
+
+---
+
+### Technical notes
+
+- No new tables needed; all schema is in place from Batch 1.
+- Edge functions touched: `create-razorpay-order`, `verify-razorpay-payment` (redeploy automatic).
+- New files: `src/lib/format.ts`, `src/components/ErrorBoundary.tsx`, `src/hooks/usePriceFreshness.ts`.
+- Realtime requires `ALTER PUBLICATION supabase_realtime ADD TABLE metal_prices;` — included as a small migration.
+
+After this, **Batch 3** = Admin dashboard upgrades, **Batch 4** = Performance/SEO, **Batch 5** = Polish/animations.
