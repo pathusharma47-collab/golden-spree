@@ -45,7 +45,7 @@ const NomineeScreen = () => {
     const { data, error } = await supabase
       .from("nominees")
       .select("*")
-      .eq("user_email", user.email)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: true });
 
     if (!error && data) setNominees(data);
@@ -108,6 +108,7 @@ const NomineeScreen = () => {
     setSaving(true);
 
     const payload = {
+      user_id: user.id,
       user_email: user.email,
       nominee_name: name.trim(),
       relationship,

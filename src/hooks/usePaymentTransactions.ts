@@ -24,7 +24,7 @@ export const usePaymentTransactions = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchTransactions = useCallback(async () => {
-    if (!user?.email) {
+    if (!user) {
       setTransactions([]);
       setLoading(false);
       return;
@@ -32,7 +32,7 @@ export const usePaymentTransactions = () => {
     const { data, error } = await supabase
       .from("payment_transactions")
       .select("*")
-      .eq("user_email", user.email)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -40,23 +40,19 @@ export const usePaymentTransactions = () => {
       setTransactions(data as PaymentTransaction[]);
     }
     setLoading(false);
-  }, [user?.email]);
+  }, [user]);
 
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // Poll for a specific order to reach success status (used after payment completes).
-  // Also actively asks Razorpay for the order status as a fallback when the
-  // checkout handler never fires (iframe/3DS redirect cases).
   const waitForOrderSuccess = useCallback(
     async (orderId: string, maxAttempts = 10): Promise<PaymentTransaction | null> => {
       for (let i = 0; i < maxAttempts; i++) {
-        // Ask Razorpay directly (also updates DB if captured)
         try {
           await supabase.functions.invoke("razorpay-check-order", { body: { order_id: orderId } });
         } catch (_) {
-          /* ignore — fall back to DB read */
+          /* ignore */
         }
 
         const { data } = await supabase

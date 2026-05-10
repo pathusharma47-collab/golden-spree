@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_sips: {
+        Row: {
+          bonus_reward: string | null
+          completed_months: number
+          created_at: string
+          duration: number
+          id: string
+          metal: Database["public"]["Enums"]["metal_type"]
+          monthly_amount: number
+          next_due_date: string
+          plan_id: string
+          plan_name: string
+          start_date: string
+          status: string
+          total_grams: number
+          total_invested: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bonus_reward?: string | null
+          completed_months?: number
+          created_at?: string
+          duration: number
+          id?: string
+          metal: Database["public"]["Enums"]["metal_type"]
+          monthly_amount: number
+          next_due_date: string
+          plan_id: string
+          plan_name: string
+          start_date?: string
+          status?: string
+          total_grams?: number
+          total_invested?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bonus_reward?: string | null
+          completed_months?: number
+          created_at?: string
+          duration?: number
+          id?: string
+          metal?: Database["public"]["Enums"]["metal_type"]
+          monthly_amount?: number
+          next_due_date?: string
+          plan_id?: string
+          plan_name?: string
+          start_date?: string
+          status?: string
+          total_grams?: number
+          total_invested?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           created_at: string
@@ -47,6 +104,108 @@ export type Database = {
         }
         Relationships: []
       }
+      gifts: {
+        Row: {
+          created_at: string
+          grams: number
+          id: string
+          message: string | null
+          metal: Database["public"]["Enums"]["metal_type"]
+          recipient_name: string
+          recipient_phone: string
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          grams: number
+          id?: string
+          message?: string | null
+          metal: Database["public"]["Enums"]["metal_type"]
+          recipient_name: string
+          recipient_phone: string
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          grams?: number
+          id?: string
+          message?: string | null
+          metal?: Database["public"]["Enums"]["metal_type"]
+          recipient_name?: string
+          recipient_phone?: string
+          sender_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      holdings: {
+        Row: {
+          grams: number
+          id: string
+          metal: Database["public"]["Enums"]["metal_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          grams?: number
+          id?: string
+          metal: Database["public"]["Enums"]["metal_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          grams?: number
+          id?: string
+          metal?: Database["public"]["Enums"]["metal_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investment_transactions: {
+        Row: {
+          amount_inr: number | null
+          created_at: string
+          grams: number | null
+          gst_amount: number | null
+          id: string
+          metal: Database["public"]["Enums"]["metal_type"] | null
+          notes: Json | null
+          rate: number | null
+          ref_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount_inr?: number | null
+          created_at?: string
+          grams?: number | null
+          gst_amount?: number | null
+          id?: string
+          metal?: Database["public"]["Enums"]["metal_type"] | null
+          notes?: Json | null
+          rate?: number | null
+          ref_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount_inr?: number | null
+          created_at?: string
+          grams?: number | null
+          gst_amount?: number | null
+          id?: string
+          metal?: Database["public"]["Enums"]["metal_type"] | null
+          notes?: Json | null
+          rate?: number | null
+          ref_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       kyc_details: {
         Row: {
           created_at: string
@@ -58,6 +217,7 @@ export type Database = {
           status: string
           updated_at: string
           user_email: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -69,6 +229,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_email: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -80,6 +241,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_email?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -122,6 +284,7 @@ export type Database = {
           relationship: string
           updated_at: string
           user_email: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -134,6 +297,7 @@ export type Database = {
           relationship: string
           updated_at?: string
           user_email: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -146,6 +310,7 @@ export type Database = {
           relationship?: string
           updated_at?: string
           user_email?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -164,6 +329,7 @@ export type Database = {
           status: string
           updated_at: string
           user_email: string
+          user_id: string | null
         }
         Insert: {
           amount: number
@@ -179,6 +345,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_email: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -194,6 +361,187 @@ export type Database = {
           status?: string
           updated_at?: string
           user_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          phone: string | null
+          referral_code: string | null
+          referred_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id?: string
+          phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      redemptions: {
+        Row: {
+          address: Json | null
+          amount_inr: number | null
+          created_at: string
+          grams: number
+          id: string
+          metal: Database["public"]["Enums"]["metal_type"]
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: Json | null
+          amount_inr?: number | null
+          created_at?: string
+          grams: number
+          id?: string
+          metal: Database["public"]["Enums"]["metal_type"]
+          status?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: Json | null
+          amount_inr?: number | null
+          created_at?: string
+          grams?: number
+          id?: string
+          metal?: Database["public"]["Enums"]["metal_type"]
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      spin_history: {
+        Row: {
+          created_at: string
+          id: string
+          reward_amount: number
+          reward_label: string
+          spun_on: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reward_amount: number
+          reward_label: string
+          spun_on?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reward_amount?: number
+          reward_label?: string
+          spun_on?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          welcome_bonus_applied: boolean
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          welcome_bonus_applied?: boolean
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          welcome_bonus_applied?: boolean
         }
         Relationships: []
       }
@@ -202,10 +550,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      metal_type: "gold" | "silver"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -332,6 +687,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      metal_type: ["gold", "silver"],
+    },
   },
 } as const
