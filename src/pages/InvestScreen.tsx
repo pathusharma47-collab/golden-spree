@@ -4,6 +4,7 @@ import { ArrowLeft, Wallet, ChevronRight, Check, Sparkles, Crown, Gem, Landmark,
 import SwipeToConfirm from "@/components/SwipeToConfirm";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
+import { usePriceFreshness } from "@/hooks/usePriceFreshness";
 import { useWallet } from "@/contexts/WalletContext";
 import { useSIP, SIP_PLANS, SIPPlan } from "@/contexts/SIPContext";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ const InvestScreen = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prices = useMetalPrices();
+  const freshness = usePriceFreshness(prices.updatedAt);
+  const pricesExpired = freshness.level === "expired";
   const { balance, deductForInvestment } = useWallet();
   const { activeSIPs, enrollInSIP } = useSIP();
 
@@ -40,6 +43,10 @@ const InvestScreen = () => {
 
   const handleInvest = async () => {
     if (busy) return;
+    if (pricesExpired) {
+      toast.error("Live prices unavailable", { description: "Please wait for prices to refresh before buying." });
+      return;
+    }
     if (numAmount <= 0) { toast.error("Enter a valid amount"); return; }
     if (numAmount > balance) {
       toast.error("Insufficient wallet balance", { description: "Add funds to your wallet first" });
@@ -63,6 +70,10 @@ const InvestScreen = () => {
 
   const handleEnrollSIP = async (plan: SIPPlan) => {
     if (busy) return;
+    if (pricesExpired) {
+      toast.error("Live prices unavailable", { description: "Please wait for prices to refresh before starting a SIP." });
+      return;
+    }
     const alreadyEnrolled = activeSIPs.some(s => s.planId === plan.id);
     if (alreadyEnrolled) {
       toast.error("Already enrolled", { description: `You're already enrolled in ${plan.name}` });
@@ -207,9 +218,9 @@ const InvestScreen = () => {
             {/* CTA — swipe to invest */}
             <div className="mt-8">
               <SwipeToConfirm
-                label={numAmount > 0 ? `Swipe to Invest ₹${numAmount.toLocaleString("en-IN")}` : "Enter amount to invest"}
+                label={pricesExpired ? "Prices outdated — try again soon" : numAmount > 0 ? `Swipe to Invest ₹${numAmount.toLocaleString("en-IN")}` : "Enter amount to invest"}
                 onConfirm={handleInvest}
-                disabled={busy || !(numAmount > 0 && numAmount <= balance)}
+                disabled={busy || pricesExpired || !(numAmount > 0 && numAmount <= balance)}
                 icon={ArrowRight}
                 variant={tab === "silver" ? "silver" : "gold"}
               />
@@ -376,7 +387,7 @@ const InvestScreen = () => {
                   <SwipeToConfirm
                     label={`Swipe to Start SIP — ₹${selectedPlan.monthlyAmount.toLocaleString("en-IN")}/mo`}
                     onConfirm={() => handleEnrollSIP(selectedPlan)}
-                    disabled={busy || selectedPlan.monthlyAmount > balance}
+                    disabled={busy || pricesExpired || selectedPlan.monthlyAmount > balance}
                     icon={ArrowRight}
                     variant={selectedPlan.metal === "silver" ? "silver" : "gold"}
                   />
