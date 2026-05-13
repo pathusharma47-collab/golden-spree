@@ -6,6 +6,7 @@ import { usePriceFreshness } from "@/hooks/usePriceFreshness";
 import { useAuth } from "@/contexts/AuthContext";
 import { useKYC } from "@/hooks/useKYC";
 import { useHoldings } from "@/hooks/useHoldings";
+import { useRecentInvestments } from "@/hooks/useRecentInvestments";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.jpg";
 
@@ -23,6 +24,33 @@ const Dashboard = () => {
   const gold24kRate = parseFloat(prices.gold24k) || 0;
   const silverRate = parseFloat(prices.silver) || 0;
   const { gold: goldGrams, silver: silverGrams } = useHoldings();
+  const { items: recentInv } = useRecentInvestments({ limit: 100 });
+
+  // Daily Save: compute from real investment activity over the past 7 days
+  const dayKey = (d: Date) => {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x.getTime();
+  };
+  const today0 = dayKey(new Date());
+  const dayTotals = new Map<number, number>();
+  for (const tx of recentInv) {
+    const k = dayKey(new Date(tx.created_at));
+    if (today0 - k > 6 * 86400000) continue;
+    dayTotals.set(k, (dayTotals.get(k) ?? 0) + tx.amount_inr);
+  }
+  const todaySaved = dayTotals.get(today0) ?? 0;
+  // Streak = consecutive days ending today (or yesterday) with any save
+  let streak = 0;
+  for (let i = 0; i < 7; i++) {
+    const k = today0 - i * 86400000;
+    if ((dayTotals.get(k) ?? 0) > 0) streak++;
+    else if (i > 0) break;
+  }
+  const last7Days = Array.from({ length: 7 }, (_, idx) => {
+    const k = today0 - (6 - idx) * 86400000;
+    return (dayTotals.get(k) ?? 0) > 0;
+  });
   const goldValue = goldGrams * gold24kRate;
   const silverValue = silverGrams * silverRate;
   const getLockerProgress = (grams: number, goalGrams: number) =>
@@ -247,11 +275,15 @@ const Dashboard = () => {
             </div>
             <p className="text-xs font-semibold text-foreground">Daily Save</p>
           </div>
-          <p className="text-2xl font-display font-bold text-foreground">₹50</p>
-          <p className="text-[10px] text-muted-foreground mt-1">7 day streak 🔥</p>
+          <p className="text-2xl font-display font-bold text-foreground">
+            ₹{todaySaved.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            {streak > 0 ? `${streak} day streak 🔥` : "Save today to start a streak"}
+          </p>
           <div className="flex gap-0.5 mt-2">
-            {[...Array(7)].map((_, i) => (
-              <div key={i} className={`h-1.5 flex-1 rounded-full ${i < 5 ? "bg-emerald-500" : "bg-muted"}`} />
+            {last7Days.map((on, i) => (
+              <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${on ? "bg-emerald-500" : "bg-muted"}`} />
             ))}
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Gem, Landmark, TrendingUp, ArrowDownRight, Plus, Gift, Share2, Sparkles, ShieldCheck, Calendar, Award } from "lucide-react";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useHoldings } from "@/hooks/useHoldings";
+import { useRecentInvestments } from "@/hooks/useRecentInvestments";
 import { useMemo } from "react";
 
 const LockerScreen = () => {
@@ -13,6 +14,7 @@ const LockerScreen = () => {
 
   const { gold, silver, goldInvested, silverInvested } = useHoldings();
   const grams = isGold ? gold : silver;
+  const { items: recent } = useRecentInvestments({ metal: isGold ? "gold" : "silver", limit: 5 });
   const goalGrams = isGold ? 10 : 500;
   const rate = parseFloat(isGold ? prices.gold24k : prices.silver) || 0;
   const value = grams * rate;
@@ -378,24 +380,34 @@ const LockerScreen = () => {
             <button onClick={() => navigate("/transactions")} className="text-[11px] text-primary font-semibold">View all</button>
           </div>
           <div className="space-y-2">
-            {[
-              { type: "Buy", g: "0.15", date: "Today" },
-              { type: "Buy", g: "0.32", date: "Yesterday" },
-              { type: "SIP", g: "0.10", date: "3 days ago" },
-            ].map((t, i) => (
-              <div key={i} className="flex items-center justify-between py-1.5">
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-8 h-8 rounded-lg ${accentGrad} flex items-center justify-center`}>
-                    <Plus size={12} className="text-primary-foreground" />
+            {recent.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground text-center py-3">
+                No activity yet. Buy {label.toLowerCase()} to get started.
+              </p>
+            ) : (
+              recent.map((t) => {
+                const d = new Date(t.created_at);
+                const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
+                const when =
+                  diffDays <= 0 ? "Today" : diffDays === 1 ? "Yesterday" : `${diffDays} days ago`;
+                return (
+                  <div key={t.id} className="flex items-center justify-between py-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-8 h-8 rounded-lg ${accentGrad} flex items-center justify-center`}>
+                        <Plus size={12} className="text-primary-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">
+                          {t.type === "sip" ? "SIP" : "Buy"} {label}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">{when}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs font-bold text-foreground">+{t.grams.toFixed(isGold ? 4 : 2)}g</p>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">{t.type} {label}</p>
-                    <p className="text-[10px] text-muted-foreground">{t.date}</p>
-                  </div>
-                </div>
-                <p className="text-xs font-bold text-foreground">+{t.g}g</p>
-              </div>
-            ))}
+                );
+              })
+            )}
           </div>
         </motion.div>
       </div>
