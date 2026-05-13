@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Gem, Landmark, TrendingUp, ArrowDownRight, Plus, Gift, Share2, Sparkles, ShieldCheck, Calendar, Award } from "lucide-react";
 import { useMetalPrices } from "@/hooks/useMetalPrices";
 import { useHoldings } from "@/hooks/useHoldings";
+import { useRecentInvestments } from "@/hooks/useRecentInvestments";
 import { useMemo } from "react";
 
 const LockerScreen = () => {
@@ -13,6 +14,7 @@ const LockerScreen = () => {
 
   const { gold, silver, goldInvested, silverInvested } = useHoldings();
   const grams = isGold ? gold : silver;
+  const { items: recent } = useRecentInvestments({ metal: isGold ? "gold" : "silver", limit: 5 });
   const goalGrams = isGold ? 10 : 500;
   const rate = parseFloat(isGold ? prices.gold24k : prices.silver) || 0;
   const value = grams * rate;
