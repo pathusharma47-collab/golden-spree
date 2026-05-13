@@ -24,7 +24,7 @@ const LockerScreen = () => {
 
   // Gold: 1 bar per gram. Silver: 1 bar per 50g. Capped for visual sanity.
   const rawCount = isGold ? Math.round(grams) : Math.floor(grams / 50);
-  const itemCount = Math.max(1, Math.min(24, rawCount));
+  const itemCount = grams > 0 ? Math.max(1, Math.min(24, rawCount)) : 0;
   // Lay bars out on a clean grid so each one is clearly visible
   const COLS = 4;
   const COL_W = 44; // px between bar centers horizontally
