@@ -25,10 +25,10 @@ const Dashboard = () => {
   const { gold: goldGrams, silver: silverGrams } = useHoldings();
   const goldValue = goldGrams * gold24kRate;
   const silverValue = silverGrams * silverRate;
-  const getFilledLockerSegments = (grams: number, goalGrams: number) =>
-    grams > 0 ? Math.max(1, Math.min(5, Math.ceil((grams / goalGrams) * 5))) : 0;
-  const goldFilledSegments = getFilledLockerSegments(goldGrams, 10);
-  const silverFilledSegments = getFilledLockerSegments(silverGrams, 500);
+  const getLockerProgress = (grams: number, goalGrams: number) =>
+    grams > 0 ? Math.min(100, (grams / goalGrams) * 100) : 0;
+  const goldProgress = getLockerProgress(goldGrams, 10);
+  const silverProgress = getLockerProgress(silverGrams, 500);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -151,10 +151,13 @@ const Dashboard = () => {
             <p className="text-[11px] text-muted-foreground mt-0.5">
               ≈ ₹{goldValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
-            <div className="mt-3 flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < goldFilledSegments ? "gold-gradient" : "bg-muted"}`} />
-              ))}
+            <div className="mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <motion.div
+                className="h-full rounded-full gold-gradient"
+                initial={false}
+                animate={{ width: `${goldProgress}%` }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              />
             </div>
           </div>
         </button>
@@ -178,10 +181,13 @@ const Dashboard = () => {
             <p className="text-[11px] text-muted-foreground mt-0.5">
               ≈ ₹{silverValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
-            <div className="mt-3 flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < silverFilledSegments ? "silver-gradient" : "bg-muted"}`} />
-              ))}
+            <div className="mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <motion.div
+                className="h-full rounded-full silver-gradient"
+                initial={false}
+                animate={{ width: `${silverProgress}%` }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              />
             </div>
           </div>
         </button>
