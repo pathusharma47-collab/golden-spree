@@ -25,6 +25,10 @@ const Dashboard = () => {
   const { gold: goldGrams, silver: silverGrams } = useHoldings();
   const goldValue = goldGrams * gold24kRate;
   const silverValue = silverGrams * silverRate;
+  const getFilledLockerSegments = (grams: number, goalGrams: number) =>
+    grams > 0 ? Math.max(1, Math.min(5, Math.ceil((grams / goalGrams) * 5))) : 0;
+  const goldFilledSegments = getFilledLockerSegments(goldGrams, 10);
+  const silverFilledSegments = getFilledLockerSegments(silverGrams, 500);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -149,7 +153,7 @@ const Dashboard = () => {
             </p>
             <div className="mt-3 flex gap-1">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < 3 ? "gold-gradient" : "bg-muted"}`} />
+                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < goldFilledSegments ? "gold-gradient" : "bg-muted"}`} />
               ))}
             </div>
           </div>
@@ -176,7 +180,7 @@ const Dashboard = () => {
             </p>
             <div className="mt-3 flex gap-1">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < 2 ? "silver-gradient" : "bg-muted"}`} />
+                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < silverFilledSegments ? "silver-gradient" : "bg-muted"}`} />
               ))}
             </div>
           </div>
