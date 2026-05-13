@@ -152,7 +152,7 @@ const LockerScreen = () => {
                 <motion.div
                   initial={{ height: "0%" }}
                   animate={{ height: `${progress}%` }}
-                  transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+                  transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
                   className="absolute bottom-0 inset-x-0"
                   style={{
                     background: isGold
