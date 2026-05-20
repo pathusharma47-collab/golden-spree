@@ -338,8 +338,9 @@ const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
-        {(["prices", "banners"] as const).map((tab) => {
-          const TabIcon = tab === "prices" ? Coins : ImageIcon;
+        {(["prices", "banners", "transactions"] as const).map((tab) => {
+          const TabIcon = tab === "prices" ? Coins : tab === "banners" ? ImageIcon : Receipt;
+          const label = tab === "prices" ? "Prices" : tab === "banners" ? "Banners" : "Activity";
           return (
             <button
               key={tab}
@@ -351,7 +352,7 @@ const AdminDashboard = () => {
               }`}
             >
               <TabIcon size={14} />
-              {tab === "prices" ? "Prices" : "Banners"}
+              {label}
             </button>
           );
         })}
