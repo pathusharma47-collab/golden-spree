@@ -59,25 +59,29 @@ export default function NotificationBell({ className = "" }: { className?: strin
                     No notifications yet
                   </div>
                 ) : (
-                  items.map((n) => (
-                    <div
-                      key={n.id}
-                      className="p-2.5 rounded-lg bg-background/60 border border-border/50"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs font-semibold text-foreground">{n.title}</p>
-                        <span className="text-[9px] text-muted-foreground whitespace-nowrap">
-                          {new Date(n.created_at).toLocaleString("en-IN", {
-                            dateStyle: "short",
-                            timeStyle: "short",
-                          })}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 break-words">
-                        {n.body}
-                      </p>
-                    </div>
-                  ))
+                   items.map((n) => (
+                     <div
+                       key={n.id}
+                       className="p-3 rounded-lg bg-background/80 border border-border/60"
+                     >
+                       <div className="flex items-start justify-between gap-2 mb-1">
+                         <p className="text-sm font-semibold text-foreground leading-tight">
+                           {n.title}
+                         </p>
+                         <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
+                           {new Date(n.created_at).toLocaleString("en-IN", {
+                             dateStyle: "short",
+                             timeStyle: "short",
+                           })}
+                         </span>
+                       </div>
+                       {n.body && (
+                         <p className="text-xs text-foreground/80 break-words leading-relaxed whitespace-pre-wrap">
+                           {n.body}
+                         </p>
+                       )}
+                     </div>
+                   ))
                 )}
               </div>
               <button
