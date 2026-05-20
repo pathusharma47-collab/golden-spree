@@ -314,6 +314,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          audience: string
+          body: string
+          category: string | null
+          created_at: string
+          id: string
+          link: string | null
+          metadata: Json | null
+          read_by: string[]
+          recipient_id: string | null
+          sender_id: string | null
+          title: string
+        }
+        Insert: {
+          audience: string
+          body: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json | null
+          read_by?: string[]
+          recipient_id?: string | null
+          sender_id?: string | null
+          title: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json | null
+          read_by?: string[]
+          recipient_id?: string | null
+          sender_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       payment_transactions: {
         Row: {
           amount: number
@@ -561,6 +603,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_admins: {
+        Args: {
+          _body: string
+          _category: string
+          _meta?: Json
+          _title: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       process_investment: {
         Args: { _amount: number; _metal: string; _source?: string }
         Returns: Json
@@ -571,6 +623,16 @@ export type Database = {
       }
       process_withdrawal: {
         Args: { _amount: number; _description?: string }
+        Returns: Json
+      }
+      send_notification: {
+        Args: {
+          _body: string
+          _category?: string
+          _link?: string
+          _recipient_id?: string
+          _title: string
+        }
         Returns: Json
       }
     }
