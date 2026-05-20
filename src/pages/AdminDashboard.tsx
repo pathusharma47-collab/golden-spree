@@ -71,8 +71,7 @@ const AdminDashboard = () => {
   const [priceSaved, setPriceSaved] = useState(false);
   const [bannerTitle, setBannerTitle] = useState("");
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
-  const [activeTabState, setActiveTabState] = useState<"prices" | "banners" | "transactions">("prices");
+  const [activeTab, setActiveTab] = useState<"prices" | "banners" | "transactions">("prices");
 
   // Edit banner state
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
