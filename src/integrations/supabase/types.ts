@@ -107,7 +107,9 @@ export type Database = {
       device_tokens: {
         Row: {
           created_at: string
+          enabled: boolean
           id: string
+          last_seen_at: string
           platform: string
           token: string
           updated_at: string
@@ -115,7 +117,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          enabled?: boolean
           id?: string
+          last_seen_at?: string
           platform: string
           token: string
           updated_at?: string
@@ -123,7 +127,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          enabled?: boolean
           id?: string
+          last_seen_at?: string
           platform?: string
           token?: string
           updated_at?: string
@@ -532,6 +538,27 @@ export type Database = {
           reward_amount?: number
           reward_label?: string
           spun_on?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      topic_subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          topic: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          topic?: string
           user_id?: string
         }
         Relationships: []
