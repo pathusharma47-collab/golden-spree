@@ -557,6 +557,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_investment: {
+        Args: { _amount: number; _metal: string; _source?: string }
+        Returns: Json
+      }
+      process_withdrawal: {
+        Args: { _amount: number; _description?: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
