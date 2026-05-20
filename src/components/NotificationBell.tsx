@@ -4,6 +4,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 
+const CATEGORY_META: Record<string, { label: string; cls: string }> = {
+  investment:  { label: "Transaction", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  withdrawal:  { label: "Transaction", cls: "bg-rose-500/10 text-rose-600 border-rose-500/20" },
+  razorpay:    { label: "Transaction", cls: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  wallet:      { label: "Transaction", cls: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  reward:      { label: "Reward",      cls: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+  bonus:       { label: "Bonus",       cls: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+  kyc:         { label: "KYC",         cls: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
+  redemption:  { label: "Redemption",  cls: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
+  sip:         { label: "SIP",         cls: "bg-teal-500/10 text-teal-600 border-teal-500/20" },
+  gift:        { label: "Gift",        cls: "bg-pink-500/10 text-pink-600 border-pink-500/20" },
+  signup:      { label: "New User",    cls: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" },
+  welcome:     { label: "Welcome",     cls: "bg-primary/10 text-primary border-primary/20" },
+  admin:       { label: "Announcement",cls: "bg-primary/10 text-primary border-primary/20" },
+};
+
+function badgeFor(category: string | null) {
+  const key = (category || "admin").toLowerCase();
+  return CATEGORY_META[key] || { label: key.charAt(0).toUpperCase() + key.slice(1), cls: "bg-muted text-muted-foreground border-border" };
+}
+
 export default function NotificationBell({ className = "" }: { className?: string }) {
   const { items, unread, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
@@ -64,10 +85,15 @@ export default function NotificationBell({ className = "" }: { className?: strin
                        key={n.id}
                        className="p-3 rounded-lg bg-background/80 border border-border/60"
                      >
-                       <div className="flex items-start justify-between gap-2 mb-1">
-                         <p className="text-sm font-semibold text-foreground leading-tight">
-                           {n.title}
-                         </p>
+                       <div className="flex items-center justify-between gap-2 mb-1.5">
+                         {(() => {
+                           const b = badgeFor(n.category);
+                           return (
+                             <span className={`text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border ${b.cls}`}>
+                               {b.label}
+                             </span>
+                           );
+                         })()}
                          <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
                            {new Date(n.created_at).toLocaleString("en-IN", {
                              dateStyle: "short",
@@ -75,6 +101,9 @@ export default function NotificationBell({ className = "" }: { className?: strin
                            })}
                          </span>
                        </div>
+                       <p className="text-sm font-semibold text-foreground leading-tight mb-1">
+                         {n.title}
+                       </p>
                        {n.body && (
                          <p className="text-xs text-foreground/80 break-words leading-relaxed whitespace-pre-wrap">
                            {n.body}
