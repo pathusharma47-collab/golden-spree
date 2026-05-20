@@ -9,6 +9,7 @@ import { useHoldings } from "@/hooks/useHoldings";
 import { useRecentInvestments } from "@/hooks/useRecentInvestments";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.jpg";
+import NotificationBell from "@/components/NotificationBell";
 
 const quickSaveAmounts = [10, 50, 100, 500, 1000];
 
@@ -96,9 +97,12 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        <button onClick={() => navigate("/profile")} className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-          <Sparkles size={18} className="text-primary" />
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button onClick={() => navigate("/profile")} className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+            <Sparkles size={18} className="text-primary" />
+          </button>
+        </div>
       </motion.div>
 
       {/* Banner Carousel */}

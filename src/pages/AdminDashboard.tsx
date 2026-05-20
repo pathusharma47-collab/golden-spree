@@ -19,9 +19,12 @@ import {
   Receipt,
   ArrowDownCircle,
   ArrowUpCircle,
+  Send,
+  Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import NotificationBell from "@/components/NotificationBell";
 
 interface PriceData {
   gold24k: string;
@@ -71,7 +74,15 @@ const AdminDashboard = () => {
   const [priceSaved, setPriceSaved] = useState(false);
   const [bannerTitle, setBannerTitle] = useState("");
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"prices" | "banners" | "transactions">("prices");
+  const [activeTab, setActiveTab] = useState<"prices" | "banners" | "transactions" | "notify">("prices");
+
+  // Send notification state
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifBody, setNotifBody] = useState("");
+  const [notifTarget, setNotifTarget] = useState<"all" | "user">("all");
+  const [notifUserId, setNotifUserId] = useState<string>("");
+  const [users, setUsers] = useState<{ user_id: string; email: string; display_name: string | null }[]>([]);
+  const [sendingNotif, setSendingNotif] = useState(false);
 
   // Edit banner state
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
@@ -84,6 +95,42 @@ const AdminDashboard = () => {
   const [transactions, setTransactions] = useState<TxRow[]>([]);
   const [loadingTx, setLoadingTx] = useState(true);
   const [txFilter, setTxFilter] = useState<"all" | "credit" | "debit">("all");
+
+  // Load users for targeted notifications
+  useEffect(() => {
+    supabase
+      .from("profiles")
+      .select("user_id, email, display_name")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => setUsers(data || []));
+  }, []);
+
+  const sendNotification = async () => {
+    if (!notifTitle.trim() || !notifBody.trim()) {
+      toast.error("Title and message are required");
+      return;
+    }
+    if (notifTarget === "user" && !notifUserId) {
+      toast.error("Pick a user");
+      return;
+    }
+    setSendingNotif(true);
+    const { error } = await supabase.rpc("send_notification", {
+      _title: notifTitle.trim(),
+      _body: notifBody.trim(),
+      _recipient_id: notifTarget === "user" ? notifUserId : null,
+      _link: null,
+      _category: "admin",
+    });
+    setSendingNotif(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(notifTarget === "all" ? "Sent to all users" : "Sent to user");
+      setNotifTitle("");
+      setNotifBody("");
+    }
+  };
 
   // Load prices from Supabase
   useEffect(() => {
@@ -328,24 +375,27 @@ const AdminDashboard = () => {
             <p className="text-xs text-muted-foreground">{user?.email}</p>
           </div>
         </div>
-        <button
-          onClick={async () => { await logout(); navigate("/auth"); }}
-          className="text-xs text-destructive font-medium px-3 py-1.5 rounded-lg border border-destructive/30"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button
+            onClick={async () => { await logout(); navigate("/auth"); }}
+            className="text-xs text-destructive font-medium px-3 py-1.5 rounded-lg border border-destructive/30"
+          >
+            Logout
+          </button>
+        </div>
       </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        {(["prices", "banners", "transactions"] as const).map((tab) => {
-          const TabIcon = tab === "prices" ? Coins : tab === "banners" ? ImageIcon : Receipt;
-          const label = tab === "prices" ? "Prices" : tab === "banners" ? "Banners" : "Activity";
+      <div className="flex gap-2 mb-6 overflow-x-auto">
+        {(["prices", "banners", "transactions", "notify"] as const).map((tab) => {
+          const TabIcon = tab === "prices" ? Coins : tab === "banners" ? ImageIcon : tab === "transactions" ? Receipt : Bell;
+          const label = tab === "prices" ? "Prices" : tab === "banners" ? "Banners" : tab === "transactions" ? "Activity" : "Notify";
           return (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 min-w-fit py-2.5 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                 activeTab === tab
                   ? "gold-gradient text-primary-foreground gold-glow"
                   : "bg-card border border-border text-muted-foreground"
@@ -656,6 +706,101 @@ const AdminDashboard = () => {
                 )}
               </div>
             )}
+          </motion.div>
+        )}
+
+        {activeTab === "notify" && (
+          <motion.div
+            key="notify"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            <div className="glass-card p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Send size={16} className="text-primary" />
+                Send Push Notification
+              </h2>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setNotifTarget("all")}
+                  className={`flex-1 h-10 rounded-xl text-xs font-medium transition-all ${
+                    notifTarget === "all" ? "gold-gradient text-primary-foreground" : "bg-card border border-border text-muted-foreground"
+                  }`}
+                >
+                  Broadcast to all
+                </button>
+                <button
+                  onClick={() => setNotifTarget("user")}
+                  className={`flex-1 h-10 rounded-xl text-xs font-medium transition-all ${
+                    notifTarget === "user" ? "gold-gradient text-primary-foreground" : "bg-card border border-border text-muted-foreground"
+                  }`}
+                >
+                  Specific user
+                </button>
+              </div>
+
+              {notifTarget === "user" && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Recipient</label>
+                  <select
+                    value={notifUserId}
+                    onChange={(e) => setNotifUserId(e.target.value)}
+                    className="w-full h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Select user…</option>
+                    {users.map((u) => (
+                      <option key={u.user_id} value={u.user_id}>
+                        {u.display_name ? `${u.display_name} · ${u.email}` : u.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Title</label>
+                <input
+                  type="text"
+                  value={notifTitle}
+                  onChange={(e) => setNotifTitle(e.target.value)}
+                  placeholder="e.g. Festive offer"
+                  maxLength={80}
+                  className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Message</label>
+                <textarea
+                  value={notifBody}
+                  onChange={(e) => setNotifBody(e.target.value)}
+                  placeholder="Type your message…"
+                  maxLength={300}
+                  rows={4}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+                <p className="text-[10px] text-muted-foreground text-right mt-1">
+                  {notifBody.length}/300
+                </p>
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={sendNotification}
+                disabled={sendingNotif}
+                className="w-full h-12 rounded-xl gold-gradient text-primary-foreground font-semibold flex items-center justify-center gap-2 gold-glow disabled:opacity-50"
+              >
+                {sendingNotif ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                {sendingNotif ? "Sending..." : "Send Notification"}
+              </motion.button>
+
+              <p className="text-[10px] text-muted-foreground text-center">
+                Users will receive a real-time in-app toast and bell badge.
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
