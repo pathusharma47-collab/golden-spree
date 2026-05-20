@@ -13,6 +13,10 @@ export const platform = () => Capacitor.getPlatform(); // 'ios' | 'android' | 'w
 export async function initNative() {
   if (!isNative()) return;
 
+  // Mark the document so native-only CSS (safe-area padding, no select) applies.
+  document.documentElement.classList.add("capacitor");
+  document.body.classList.add("capacitor");
+
   // Status bar — light theme app
   try {
     await StatusBar.setStyle({ style: Style.Light });
