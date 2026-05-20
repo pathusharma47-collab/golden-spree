@@ -109,111 +109,58 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, [user, refresh]);
 
-  const adjustWallet = async (
-    delta: number,
-    txType: "credit" | "debit",
-    description: string,
-  ): Promise<boolean> => {
-    if (!user) return false;
-    const newBal = balance + delta;
-    if (newBal < 0) return false;
-    const { error: walletErr } = await supabase
-      .from("wallets")
-      .update({ balance: newBal })
-      .eq("user_id", user.id);
-    if (walletErr) return false;
-    await supabase.from("wallet_transactions").insert({
-      user_id: user.id,
-      type: txType,
-      amount: Math.abs(delta),
-      description,
-    });
-    setBalance(newBal);
-    await refresh();
-    return true;
-  };
-
+  // NOTE: addFunds is no longer used for real money flows — wallet credits
+  // now happen server-side (Razorpay verify-payment edge function calls
+  // credit_wallet_from_payment, spin wheel calls process_spin_reward).
+  // We keep this as a no-op + refresh so existing callers don't break.
   const addFunds = useCallback(
-    async (amount: number, description = "Added funds to wallet") => {
-      await adjustWallet(amount, "credit", description);
+    async (_amount: number, _description?: string) => {
+      await refresh();
     },
-    [balance, user],
+    [refresh],
   );
 
   const withdraw = useCallback(
     async (amount: number, description = "Withdrawn to bank"): Promise<boolean> => {
+      if (!user) return false;
       if (amount > balance) return false;
-      return adjustWallet(-amount, "debit", description);
+      const { error } = await supabase.rpc("process_withdrawal", {
+        _amount: amount,
+        _description: description,
+      });
+      if (error) {
+        console.error("withdraw failed", error);
+        return false;
+      }
+      await refresh();
+      return true;
     },
-    [balance, user],
+    [balance, user, refresh],
   );
 
   const deductForInvestment = useCallback(
     async (
       amount: number,
       metalType: "gold" | "silver",
-      grams: string,
-      rate?: number,
+      _grams: string,
+      _rate?: number,
       source: "buy" | "sip" = "buy",
     ): Promise<boolean> => {
       if (!user) return false;
       if (amount > balance) return false;
-
-      const gramsNum = parseFloat(grams) || 0;
-      const gst = +(amount * 0.03).toFixed(2);
-      const metalValue = +(amount - gst).toFixed(2);
-
-      // 1. Wallet debit
-      const debitOk = await adjustWallet(
-        -amount,
-        "debit",
-        `Invested in ${metalType} (${grams}g) · ₹${metalValue} + ₹${gst} GST`,
-      );
-      if (!debitOk) return false;
-
-      // 2. Upsert holdings (sum grams)
-      try {
-        const { data: existing } = await supabase
-          .from("holdings")
-          .select("id, grams")
-          .eq("user_id", user.id)
-          .eq("metal", metalType)
-          .maybeSingle();
-
-        if (existing) {
-          await supabase
-            .from("holdings")
-            .update({ grams: Number(existing.grams) + gramsNum })
-            .eq("id", existing.id);
-        } else {
-          await supabase.from("holdings").insert({
-            user_id: user.id,
-            metal: metalType,
-            grams: gramsNum,
-          });
-        }
-      } catch (err) {
-        console.error("Holdings update failed", err);
+      const { error } = await supabase.rpc("process_investment", {
+        _metal: metalType,
+        _amount: amount,
+        _source: source,
+      });
+      if (error) {
+        console.error("invest failed", error);
+        return false;
       }
-
-      // 3. Investment ledger row
-      try {
-        await supabase.from("investment_transactions").insert({
-          user_id: user.id,
-          type: source === "sip" ? "sip" : "buy",
-          metal: metalType,
-          grams: gramsNum,
-          amount_inr: amount,
-          gst_amount: gst,
-          rate: rate ?? null,
-        });
-      } catch (err) {
-        console.error("Investment tx insert failed", err);
-      }
-
+      await refresh();
       return true;
     },
-    [balance, user],
+    [balance, user, refresh],
   );
 
   return (
