@@ -30,8 +30,10 @@ export function useNotifications() {
       .order("created_at", { ascending: false })
       .limit(50);
     if (isAdmin) {
-      q = q.in("audience", ["admin"]);
+      // Admin sees: activity alerts (admin), their own broadcasts (all) and direct messages to them
+      q = q.or(`audience.eq.admin,audience.eq.all,recipient_id.eq.${user.id}`);
     } else {
+      // Users see: broadcasts + direct messages to them
       q = q.or(`recipient_id.eq.${user.id},audience.eq.all`);
     }
     const { data, error } = await q;
@@ -50,7 +52,7 @@ export function useNotifications() {
         (payload) => {
           const n = payload.new as Notification;
           const forMe = isAdmin
-            ? n.audience === "admin"
+            ? n.audience === "admin" || n.audience === "all" || n.recipient_id === user.id
             : n.audience === "all" || n.recipient_id === user.id;
           if (!forMe) return;
           setItems((prev) => [n, ...prev].slice(0, 50));
