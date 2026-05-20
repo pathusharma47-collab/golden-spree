@@ -59,7 +59,8 @@ const WalletPage = () => {
       setSyncingFunds(false);
 
       if (tx?.status === "success") {
-        addFunds(num);
+        // Wallet is credited server-side inside razorpay-verify-payment.
+        // Just refresh local state.
         await refetchPayments();
         hapticSuccess();
         toast.success(`₹${num.toLocaleString("en-IN")} added to wallet`, {
