@@ -550,6 +550,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      credit_wallet_from_payment: {
+        Args: { _amount: number; _order_id: string; _user_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -559,6 +563,10 @@ export type Database = {
       }
       process_investment: {
         Args: { _amount: number; _metal: string; _source?: string }
+        Returns: Json
+      }
+      process_spin_reward: {
+        Args: { _amount: number; _label: string }
         Returns: Json
       }
       process_withdrawal: {
