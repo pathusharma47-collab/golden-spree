@@ -16,6 +16,9 @@ import {
   X,
   Coins,
   ImageIcon,
+  Receipt,
+  ArrowDownCircle,
+  ArrowUpCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -32,6 +35,18 @@ interface Banner {
   image_data: string;
   redirect_url: string;
   title: string;
+}
+
+interface TxRow {
+  id: string;
+  user_id: string;
+  type: string;
+  amount: number;
+  description: string;
+  category: string | null;
+  created_at: string;
+  user_email?: string;
+  user_name?: string;
 }
 
 const DEFAULT_PRICES: PriceData = {
@@ -56,7 +71,7 @@ const AdminDashboard = () => {
   const [priceSaved, setPriceSaved] = useState(false);
   const [bannerTitle, setBannerTitle] = useState("");
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
+  const [activeTab, setActiveTab] = useState<"prices" | "banners" | "transactions">("prices");
 
   // Edit banner state
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
@@ -64,6 +79,11 @@ const AdminDashboard = () => {
   const [editPreview, setEditPreview] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Transactions
+  const [transactions, setTransactions] = useState<TxRow[]>([]);
+  const [loadingTx, setLoadingTx] = useState(true);
+  const [txFilter, setTxFilter] = useState<"all" | "credit" | "debit">("all");
 
   // Load prices from Supabase
   useEffect(() => {
@@ -107,6 +127,65 @@ const AdminDashboard = () => {
       setLoadingBanners(false);
     };
     fetchBanners();
+  }, []);
+
+  // Enrich tx rows with profile info
+  const enrichTx = async (rows: any[]): Promise<TxRow[]> => {
+    if (!rows.length) return [];
+    const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("user_id, email, display_name")
+      .in("user_id", ids);
+    const map = new Map((profs || []).map((p: any) => [p.user_id, p]));
+    return rows.map((r) => ({
+      ...r,
+      user_email: map.get(r.user_id)?.email,
+      user_name: map.get(r.user_id)?.display_name,
+    }));
+  };
+
+  // Load transactions + realtime
+  useEffect(() => {
+    let cancelled = false;
+    const fetchTx = async () => {
+      setLoadingTx(true);
+      const { data, error } = await supabase
+        .from("wallet_transactions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) {
+        console.error(error);
+        toast.error("Failed to load transactions");
+      } else if (!cancelled) {
+        setTransactions(await enrichTx(data || []));
+      }
+      setLoadingTx(false);
+    };
+    fetchTx();
+
+    const channel = supabase
+      .channel("admin-wallet-tx")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "wallet_transactions" },
+        async (payload) => {
+          const enriched = await enrichTx([payload.new]);
+          const row = enriched[0];
+          setTransactions((prev) => [row, ...prev].slice(0, 200));
+          toast.success(
+            `${row.type === "credit" ? "↑" : "↓"} ₹${row.amount} · ${row.user_email || "user"}`,
+            { description: row.description }
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const savePrices = async () => {
@@ -259,8 +338,9 @@ const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
-        {(["prices", "banners"] as const).map((tab) => {
-          const TabIcon = tab === "prices" ? Coins : ImageIcon;
+        {(["prices", "banners", "transactions"] as const).map((tab) => {
+          const TabIcon = tab === "prices" ? Coins : tab === "banners" ? ImageIcon : Receipt;
+          const label = tab === "prices" ? "Prices" : tab === "banners" ? "Banners" : "Activity";
           return (
             <button
               key={tab}
@@ -272,7 +352,7 @@ const AdminDashboard = () => {
               }`}
             >
               <TabIcon size={14} />
-              {tab === "prices" ? "Prices" : "Banners"}
+              {label}
             </button>
           );
         })}
@@ -460,6 +540,120 @@ const AdminDashboard = () => {
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 No banners added yet
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {activeTab === "transactions" && (
+          <motion.div
+            key="transactions"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-3"
+          >
+            <div className="glass-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Receipt size={16} className="text-primary" />
+                  Live Transactions
+                </h2>
+                <span className="text-[10px] text-muted-foreground">
+                  {transactions.length} recent
+                </span>
+              </div>
+              <div className="flex gap-2">
+                {(["all", "credit", "debit"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setTxFilter(f)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${
+                      txFilter === f
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border text-muted-foreground"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loadingTx ? (
+              <div className="text-center py-8">
+                <Loader2 size={24} className="animate-spin text-muted-foreground mx-auto" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <AnimatePresence initial={false}>
+                  {transactions
+                    .filter((t) => txFilter === "all" || t.type === txFilter)
+                    .map((tx) => {
+                      const isCredit = tx.type === "credit";
+                      const Icon = isCredit ? ArrowDownCircle : ArrowUpCircle;
+                      return (
+                        <motion.div
+                          key={tx.id}
+                          layout
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="glass-card p-3 flex items-start gap-3"
+                        >
+                          <div
+                            className={`p-2 rounded-lg ${
+                              isCredit
+                                ? "bg-emerald-500/10 text-emerald-500"
+                                : "bg-destructive/10 text-destructive"
+                            }`}
+                          >
+                            <Icon size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {tx.user_name || tx.user_email || "Unknown user"}
+                              </p>
+                              <p
+                                className={`text-sm font-semibold whitespace-nowrap ${
+                                  isCredit ? "text-emerald-500" : "text-destructive"
+                                }`}
+                              >
+                                {isCredit ? "+" : "-"}₹{Number(tx.amount).toLocaleString("en-IN")}
+                              </p>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {tx.description}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {tx.category && (
+                                <span className="text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  {tx.category}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(tx.created_at).toLocaleString("en-IN", {
+                                  dateStyle: "short",
+                                  timeStyle: "short",
+                                })}
+                              </span>
+                            </div>
+                            {tx.user_email && tx.user_name && (
+                              <p className="text-[10px] text-muted-foreground truncate">
+                                {tx.user_email}
+                              </p>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                </AnimatePresence>
+                {transactions.filter((t) => txFilter === "all" || t.type === txFilter).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    No transactions yet
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
