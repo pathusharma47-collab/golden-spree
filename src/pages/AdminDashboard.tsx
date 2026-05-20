@@ -708,6 +708,101 @@ const AdminDashboard = () => {
             )}
           </motion.div>
         )}
+
+        {activeTab === "notify" && (
+          <motion.div
+            key="notify"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            <div className="glass-card p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Send size={16} className="text-primary" />
+                Send Push Notification
+              </h2>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setNotifTarget("all")}
+                  className={`flex-1 h-10 rounded-xl text-xs font-medium transition-all ${
+                    notifTarget === "all" ? "gold-gradient text-primary-foreground" : "bg-card border border-border text-muted-foreground"
+                  }`}
+                >
+                  Broadcast to all
+                </button>
+                <button
+                  onClick={() => setNotifTarget("user")}
+                  className={`flex-1 h-10 rounded-xl text-xs font-medium transition-all ${
+                    notifTarget === "user" ? "gold-gradient text-primary-foreground" : "bg-card border border-border text-muted-foreground"
+                  }`}
+                >
+                  Specific user
+                </button>
+              </div>
+
+              {notifTarget === "user" && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Recipient</label>
+                  <select
+                    value={notifUserId}
+                    onChange={(e) => setNotifUserId(e.target.value)}
+                    className="w-full h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Select user…</option>
+                    {users.map((u) => (
+                      <option key={u.user_id} value={u.user_id}>
+                        {u.display_name ? `${u.display_name} · ${u.email}` : u.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Title</label>
+                <input
+                  type="text"
+                  value={notifTitle}
+                  onChange={(e) => setNotifTitle(e.target.value)}
+                  placeholder="e.g. Festive offer"
+                  maxLength={80}
+                  className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Message</label>
+                <textarea
+                  value={notifBody}
+                  onChange={(e) => setNotifBody(e.target.value)}
+                  placeholder="Type your message…"
+                  maxLength={300}
+                  rows={4}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+                <p className="text-[10px] text-muted-foreground text-right mt-1">
+                  {notifBody.length}/300
+                </p>
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={sendNotification}
+                disabled={sendingNotif}
+                className="w-full h-12 rounded-xl gold-gradient text-primary-foreground font-semibold flex items-center justify-center gap-2 gold-glow disabled:opacity-50"
+              >
+                {sendingNotif ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                {sendingNotif ? "Sending..." : "Send Notification"}
+              </motion.button>
+
+              <p className="text-[10px] text-muted-foreground text-center">
+                Users will receive a real-time in-app toast and bell badge.
+              </p>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Edit Banner Modal */}
