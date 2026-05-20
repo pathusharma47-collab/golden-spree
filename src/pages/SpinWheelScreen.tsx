@@ -261,16 +261,13 @@ const SpinWheelScreen = () => {
           return next;
         });
 
-        if (cashValue > 0) addFunds(cashValue);
-
-        // Persist this spin to Supabase (only when it counts toward the daily limit)
+        // Atomic server-side: records spin + credits wallet (idempotent per day)
         if (user?.id) {
-          supabase.from("spin_history").insert({
-            user_id: user.id,
-            reward_label: won.label.replace("\n", " "),
-            reward_amount: cashValue,
+          supabase.rpc("process_spin_reward", {
+            _label: won.label.replace("\n", " "),
+            _amount: cashValue,
           }).then(({ error }) => {
-            if (error) console.error("spin_history insert failed", error);
+            if (error) console.error("spin reward failed", error);
           });
         }
       }

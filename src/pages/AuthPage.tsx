@@ -244,17 +244,6 @@ const AuthPage = () => {
           </>
         )}
 
-        <div className="mt-6 glass-card p-4 text-xs space-y-2">
-          <p className="text-muted-foreground font-medium text-center">Test Credentials</p>
-          <div className="flex justify-between text-muted-foreground">
-            <span>Admin:</span>
-            <span className="text-foreground">admin@test.com / admin123</span>
-          </div>
-          <div className="flex justify-between text-muted-foreground">
-            <span>User:</span>
-            <span className="text-foreground">user@test.com / user123</span>
-          </div>
-        </div>
       </motion.div>
     </div>
   );
