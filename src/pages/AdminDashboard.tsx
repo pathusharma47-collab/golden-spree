@@ -129,6 +129,65 @@ const AdminDashboard = () => {
     fetchBanners();
   }, []);
 
+  // Enrich tx rows with profile info
+  const enrichTx = async (rows: any[]): Promise<TxRow[]> => {
+    if (!rows.length) return [];
+    const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("user_id, email, display_name")
+      .in("user_id", ids);
+    const map = new Map((profs || []).map((p: any) => [p.user_id, p]));
+    return rows.map((r) => ({
+      ...r,
+      user_email: map.get(r.user_id)?.email,
+      user_name: map.get(r.user_id)?.display_name,
+    }));
+  };
+
+  // Load transactions + realtime
+  useEffect(() => {
+    let cancelled = false;
+    const fetchTx = async () => {
+      setLoadingTx(true);
+      const { data, error } = await supabase
+        .from("wallet_transactions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) {
+        console.error(error);
+        toast.error("Failed to load transactions");
+      } else if (!cancelled) {
+        setTransactions(await enrichTx(data || []));
+      }
+      setLoadingTx(false);
+    };
+    fetchTx();
+
+    const channel = supabase
+      .channel("admin-wallet-tx")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "wallet_transactions" },
+        async (payload) => {
+          const enriched = await enrichTx([payload.new]);
+          const row = enriched[0];
+          setTransactions((prev) => [row, ...prev].slice(0, 200));
+          toast.success(
+            `${row.type === "credit" ? "↑" : "↓"} ₹${row.amount} · ${row.user_email || "user"}`,
+            { description: row.description }
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const savePrices = async () => {
     if (!pricesRowId) return;
     const { error } = await supabase
