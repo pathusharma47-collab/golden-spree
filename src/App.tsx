@@ -29,6 +29,7 @@ import PrivacyScreen from "./pages/PrivacyScreen";
 import RefundScreen from "./pages/RefundScreen";
 import DeliveryScreen from "./pages/DeliveryScreen";
 import LockerScreen from "./pages/LockerScreen";
+import NotificationsPage from "./pages/NotificationsPage";
 import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const AppRoutes = () => {
           <Route path="/refund" element={<RefundScreen />} />
           <Route path="/delivery" element={<DeliveryScreen />} />
           <Route path="/locker/:type" element={<ProtectedRoute><LockerScreen /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
