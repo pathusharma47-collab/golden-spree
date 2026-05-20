@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Bell, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useNavigate } from "react-router-dom";
 
 export default function NotificationBell({ className = "" }: { className?: string }) {
   const { items, unread, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggle = () => {
     const next = !open;
@@ -41,12 +43,14 @@ export default function NotificationBell({ className = "" }: { className?: strin
               <div className="flex items-center justify-between mb-2 px-1">
                 <p className="text-sm font-semibold text-foreground">Notifications</p>
                 {items.length > 0 && (
-                  <button
-                    onClick={markAllRead}
-                    className="text-[11px] text-primary flex items-center gap-1"
-                  >
-                    <Check size={12} /> Mark all read
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={markAllRead}
+                      className="text-[11px] text-primary flex items-center gap-1"
+                    >
+                      <Check size={12} /> Mark all read
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="max-h-[60vh] overflow-y-auto space-y-1.5">
@@ -76,6 +80,15 @@ export default function NotificationBell({ className = "" }: { className?: strin
                   ))
                 )}
               </div>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/notifications");
+                }}
+                className="mt-2 w-full text-center text-xs text-primary font-medium py-2 rounded-lg hover:bg-muted transition-colors"
+              >
+                See all notifications →
+              </button>
             </motion.div>
           </>
         )}
