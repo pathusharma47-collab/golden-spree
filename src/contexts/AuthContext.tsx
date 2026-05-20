@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { registerPushForUser } from "@/lib/native";
 
 export type UserRole = "admin" | "user";
 
@@ -65,6 +66,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const appUser = await buildAppUser(s.user);
     setUser(appUser);
+    // Register the device for push notifications on native platforms.
+    // No-op on web.
+    registerPushForUser(appUser.id).catch(() => {});
   };
 
   useEffect(() => {
