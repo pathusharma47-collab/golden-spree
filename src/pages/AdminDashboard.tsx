@@ -16,6 +16,9 @@ import {
   X,
   Coins,
   ImageIcon,
+  Receipt,
+  ArrowDownCircle,
+  ArrowUpCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -32,6 +35,18 @@ interface Banner {
   image_data: string;
   redirect_url: string;
   title: string;
+}
+
+interface TxRow {
+  id: string;
+  user_id: string;
+  type: string;
+  amount: number;
+  description: string;
+  category: string | null;
+  created_at: string;
+  user_email?: string;
+  user_name?: string;
 }
 
 const DEFAULT_PRICES: PriceData = {
@@ -57,6 +72,7 @@ const AdminDashboard = () => {
   const [bannerTitle, setBannerTitle] = useState("");
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"prices" | "banners">("prices");
+  const [activeTabState, setActiveTabState] = useState<"prices" | "banners" | "transactions">("prices");
 
   // Edit banner state
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
@@ -64,6 +80,11 @@ const AdminDashboard = () => {
   const [editPreview, setEditPreview] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Transactions
+  const [transactions, setTransactions] = useState<TxRow[]>([]);
+  const [loadingTx, setLoadingTx] = useState(true);
+  const [txFilter, setTxFilter] = useState<"all" | "credit" | "debit">("all");
 
   // Load prices from Supabase
   useEffect(() => {
