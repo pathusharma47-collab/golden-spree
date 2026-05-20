@@ -87,7 +87,7 @@ serve(async (req) => {
     }
 
     if (supabase) {
-      await supabase
+      const { data: txRow } = await supabase
         .from("payment_transactions")
         .update({
           payment_id: razorpay_payment_id,
@@ -95,7 +95,19 @@ serve(async (req) => {
           status: "success",
           method,
         })
-        .eq("order_id", razorpay_order_id);
+        .eq("order_id", razorpay_order_id)
+        .select("user_id, amount")
+        .maybeSingle();
+
+      // Credit wallet server-side (idempotent on order_id)
+      if (txRow?.user_id && txRow.amount) {
+        const { error: creditErr } = await supabase.rpc("credit_wallet_from_payment", {
+          _user_id: txRow.user_id,
+          _order_id: razorpay_order_id,
+          _amount: Number(txRow.amount),
+        });
+        if (creditErr) console.error("wallet credit failed", creditErr);
+      }
     }
 
     return new Response(
