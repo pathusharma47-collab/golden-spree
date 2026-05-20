@@ -544,6 +544,120 @@ const AdminDashboard = () => {
             )}
           </motion.div>
         )}
+
+        {activeTab === "transactions" && (
+          <motion.div
+            key="transactions"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-3"
+          >
+            <div className="glass-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Receipt size={16} className="text-primary" />
+                  Live Transactions
+                </h2>
+                <span className="text-[10px] text-muted-foreground">
+                  {transactions.length} recent
+                </span>
+              </div>
+              <div className="flex gap-2">
+                {(["all", "credit", "debit"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setTxFilter(f)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${
+                      txFilter === f
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border text-muted-foreground"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loadingTx ? (
+              <div className="text-center py-8">
+                <Loader2 size={24} className="animate-spin text-muted-foreground mx-auto" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <AnimatePresence initial={false}>
+                  {transactions
+                    .filter((t) => txFilter === "all" || t.type === txFilter)
+                    .map((tx) => {
+                      const isCredit = tx.type === "credit";
+                      const Icon = isCredit ? ArrowDownCircle : ArrowUpCircle;
+                      return (
+                        <motion.div
+                          key={tx.id}
+                          layout
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="glass-card p-3 flex items-start gap-3"
+                        >
+                          <div
+                            className={`p-2 rounded-lg ${
+                              isCredit
+                                ? "bg-emerald-500/10 text-emerald-500"
+                                : "bg-destructive/10 text-destructive"
+                            }`}
+                          >
+                            <Icon size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {tx.user_name || tx.user_email || "Unknown user"}
+                              </p>
+                              <p
+                                className={`text-sm font-semibold whitespace-nowrap ${
+                                  isCredit ? "text-emerald-500" : "text-destructive"
+                                }`}
+                              >
+                                {isCredit ? "+" : "-"}₹{Number(tx.amount).toLocaleString("en-IN")}
+                              </p>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {tx.description}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {tx.category && (
+                                <span className="text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  {tx.category}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(tx.created_at).toLocaleString("en-IN", {
+                                  dateStyle: "short",
+                                  timeStyle: "short",
+                                })}
+                              </span>
+                            </div>
+                            {tx.user_email && tx.user_name && (
+                              <p className="text-[10px] text-muted-foreground truncate">
+                                {tx.user_email}
+                              </p>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                </AnimatePresence>
+                {transactions.filter((t) => txFilter === "all" || t.type === txFilter).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    No transactions yet
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Edit Banner Modal */}
