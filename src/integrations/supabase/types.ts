@@ -671,6 +671,10 @@ export type Database = {
         Args: { _amount: number; _metal: string; _source?: string }
         Returns: Json
       }
+      process_redemption: {
+        Args: { _address?: Json; _grams: number; _metal: string; _type: string }
+        Returns: Json
+      }
       process_spin_reward: {
         Args: { _amount: number; _label: string }
         Returns: Json
