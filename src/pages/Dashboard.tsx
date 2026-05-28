@@ -22,9 +22,7 @@ const Dashboard = () => {
   const { isVerified: kycVerified, loading: kycLoading } = useKYC();
   const navigate = useNavigate();
 
-  const gold24kRate = parseFloat(prices.gold24k) || 0;
-  const silverRate = parseFloat(prices.silver) || 0;
-  const { gold: goldGrams, silver: silverGrams } = useHoldings();
+  const { gold: goldGrams, silver: silverGrams, goldInvested, silverInvested } = useHoldings();
   const { items: recentInv } = useRecentInvestments({ limit: 100 });
 
   // Daily Save: compute from real investment activity over the past 7 days
@@ -52,8 +50,8 @@ const Dashboard = () => {
     const k = today0 - (6 - idx) * 86400000;
     return (dayTotals.get(k) ?? 0) > 0;
   });
-  const goldValue = goldGrams * gold24kRate;
-  const silverValue = silverGrams * silverRate;
+  const goldValue = goldInvested;
+  const silverValue = silverInvested;
   const getLockerProgress = (grams: number, goalGrams: number) =>
     grams > 0 ? Math.min(100, (grams / goalGrams) * 100) : 0;
   const goldProgress = getLockerProgress(goldGrams, 10);
@@ -181,7 +179,7 @@ const Dashboard = () => {
               {goldGrams.toFixed(goldGrams < 1 ? 4 : 2)}<span className="text-sm text-muted-foreground ml-1">gm</span>
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              ≈ ₹{goldValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+              Invested ₹{goldValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
             <div className="mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
               <motion.div
@@ -211,7 +209,7 @@ const Dashboard = () => {
               {silverGrams.toFixed(silverGrams < 1 ? 4 : 2)}<span className="text-sm text-muted-foreground ml-1">gm</span>
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              ≈ ₹{silverValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+              Invested ₹{silverValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
             <div className="mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
               <motion.div
