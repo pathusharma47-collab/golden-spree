@@ -23,6 +23,7 @@ interface WalletContextType {
     grams: string,
     rate?: number,
     source?: "buy" | "sip",
+    purity?: "22k" | "24k",
   ) => Promise<boolean>;
   refresh: () => Promise<void>;
 }
@@ -145,6 +146,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       _grams: string,
       _rate?: number,
       source: "buy" | "sip" = "buy",
+      purity: "22k" | "24k" = "22k",
     ): Promise<boolean> => {
       if (!user) return false;
       if (amount > balance) return false;
@@ -152,6 +154,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         _metal: metalType,
         _amount: amount,
         _source: source,
+        _purity: metalType === "silver" ? "silver" : purity,
       });
       if (error) {
         console.error("invest failed", error);

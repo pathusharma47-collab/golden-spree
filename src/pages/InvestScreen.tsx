@@ -16,6 +16,7 @@ type Tab = "gold" | "silver" | "sip";
 const InvestScreen = () => {
   const [tab, setTab] = useState<Tab>("gold");
   const [amount, setAmount] = useState("");
+  const [purity, setPurity] = useState<"22k" | "24k">("22k");
   const [selectedPlan, setSelectedPlan] = useState<SIPPlan | null>(null);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -35,7 +36,9 @@ const InvestScreen = () => {
   }, [searchParams]);
 
   const metal = tab === "sip" ? (selectedPlan?.metal || "gold") : tab;
-  const rate = metal === "gold" ? parseFloat(prices.gold22k) : parseFloat(prices.silver);
+  const rate = metal === "gold"
+    ? (purity === "24k" ? parseFloat(prices.gold24k) : parseFloat(prices.gold22k))
+    : parseFloat(prices.silver);
   const numAmount = parseFloat(amount) || 0;
   const gst = numAmount * GST_RATE;
   const investable = numAmount - gst;
@@ -54,9 +57,9 @@ const InvestScreen = () => {
     }
     setBusy(true);
     try {
-      const ok = await deductForInvestment(numAmount, metal, grams, rate, "buy");
+      const ok = await deductForInvestment(numAmount, metal, grams, rate, "buy", purity);
       if (ok) {
-        toast.success(`Invested ₹${numAmount.toLocaleString("en-IN")} in ${metal}`, {
+        toast.success(`Invested ₹${numAmount.toLocaleString("en-IN")} in ${metal}${metal === "gold" ? ` ${purity.toUpperCase()}` : ""}`, {
           description: `You received ${grams}g · GST ₹${gst.toFixed(2)} included`,
         });
         setAmount("");
@@ -167,6 +170,21 @@ const InvestScreen = () => {
           >
             {/* Amount Input */}
             <div className="mt-4 glass-card p-6">
+              {tab === "gold" && (
+                <div className="mb-4 flex gap-2 p-1 rounded-lg bg-muted/40">
+                  {(["22k", "24k"] as const).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPurity(p)}
+                      className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${
+                        purity === p ? "gold-gradient text-primary-foreground gold-glow" : "text-muted-foreground"
+                      }`}
+                    >
+                      Gold {p.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              )}
               <label className="text-xs text-muted-foreground uppercase tracking-wider">Enter Amount (₹)</label>
               <input
                 type="number"

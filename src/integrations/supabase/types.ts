@@ -178,6 +178,7 @@ export type Database = {
           grams: number
           id: string
           metal: Database["public"]["Enums"]["metal_type"]
+          purity: string
           updated_at: string
           user_id: string
         }
@@ -185,6 +186,7 @@ export type Database = {
           grams?: number
           id?: string
           metal: Database["public"]["Enums"]["metal_type"]
+          purity?: string
           updated_at?: string
           user_id: string
         }
@@ -192,6 +194,7 @@ export type Database = {
           grams?: number
           id?: string
           metal?: Database["public"]["Enums"]["metal_type"]
+          purity?: string
           updated_at?: string
           user_id?: string
         }
@@ -206,6 +209,7 @@ export type Database = {
           id: string
           metal: Database["public"]["Enums"]["metal_type"] | null
           notes: Json | null
+          purity: string | null
           rate: number | null
           ref_id: string | null
           type: string
@@ -219,6 +223,7 @@ export type Database = {
           id?: string
           metal?: Database["public"]["Enums"]["metal_type"] | null
           notes?: Json | null
+          purity?: string | null
           rate?: number | null
           ref_id?: string | null
           type: string
@@ -232,6 +237,7 @@ export type Database = {
           id?: string
           metal?: Database["public"]["Enums"]["metal_type"] | null
           notes?: Json | null
+          purity?: string | null
           rate?: number | null
           ref_id?: string | null
           type?: string
@@ -484,6 +490,7 @@ export type Database = {
           grams: number
           id: string
           metal: Database["public"]["Enums"]["metal_type"]
+          purity: string | null
           status: string
           type: string
           updated_at: string
@@ -496,6 +503,7 @@ export type Database = {
           grams: number
           id?: string
           metal: Database["public"]["Enums"]["metal_type"]
+          purity?: string | null
           status?: string
           type: string
           updated_at?: string
@@ -508,6 +516,7 @@ export type Database = {
           grams?: number
           id?: string
           metal?: Database["public"]["Enums"]["metal_type"]
+          purity?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -667,14 +676,40 @@ export type Database = {
         }
         Returns: undefined
       }
-      process_investment: {
-        Args: { _amount: number; _metal: string; _source?: string }
-        Returns: Json
-      }
-      process_redemption: {
-        Args: { _address?: Json; _grams: number; _metal: string; _type: string }
-        Returns: Json
-      }
+      process_investment:
+        | {
+            Args: { _amount: number; _metal: string; _source?: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _amount: number
+              _metal: string
+              _purity?: string
+              _source?: string
+            }
+            Returns: Json
+          }
+      process_redemption:
+        | {
+            Args: {
+              _address?: Json
+              _grams: number
+              _metal: string
+              _type: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _address?: Json
+              _grams: number
+              _metal: string
+              _purity?: string
+              _type: string
+            }
+            Returns: Json
+          }
       process_spin_reward: {
         Args: { _amount: number; _label: string }
         Returns: Json
