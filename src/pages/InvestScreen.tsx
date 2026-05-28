@@ -170,6 +170,21 @@ const InvestScreen = () => {
           >
             {/* Amount Input */}
             <div className="mt-4 glass-card p-6">
+              {tab === "gold" && (
+                <div className="mb-4 flex gap-2 p-1 rounded-lg bg-muted/40">
+                  {(["22k", "24k"] as const).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPurity(p)}
+                      className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${
+                        purity === p ? "gold-gradient text-primary-foreground gold-glow" : "text-muted-foreground"
+                      }`}
+                    >
+                      Gold {p.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              )}
               <label className="text-xs text-muted-foreground uppercase tracking-wider">Enter Amount (₹)</label>
               <input
                 type="number"
