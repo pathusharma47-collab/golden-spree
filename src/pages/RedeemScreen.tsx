@@ -47,10 +47,11 @@ const RedeemScreen = () => {
       return toast.error("Enter delivery / pickup address");
     }
     setBusy(true);
+    const dbType = type === "delivery" ? "home_delivery" : type === "pickup" ? "store_pickup" : "sell_back";
     const { data, error } = await supabase.rpc("process_redemption", {
       _metal: metal,
       _grams: numGrams,
-      _type: type,
+      _type: dbType,
       _address: type === "sell" ? null : addr,
     });
     setBusy(false);
