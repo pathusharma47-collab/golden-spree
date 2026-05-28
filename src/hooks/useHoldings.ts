@@ -37,7 +37,7 @@ export const useHoldings = (): Holdings => {
         .from("investment_transactions")
         .select("metal, amount_inr, gst_amount, type")
         .eq("user_id", user.id)
-        .in("type", ["buy", "sip"]),
+        .in("type", ["buy", "sip", "redeem"]),
     ]);
     let g = 0;
     let s = 0;
@@ -51,9 +51,12 @@ export const useHoldings = (): Holdings => {
       const amt = Number(row.amount_inr) || 0;
       const gst = Number(row.gst_amount) || 0;
       const net = Math.max(0, amt - gst);
-      if (row.metal === "gold") gi += net;
-      else if (row.metal === "silver") si += net;
+      const delta = row.type === "redeem" ? -amt : net;
+      if (row.metal === "gold") gi += delta;
+      else if (row.metal === "silver") si += delta;
     }
+    gi = Math.max(0, gi);
+    si = Math.max(0, si);
     setGold(g);
     setSilver(s);
     setGoldInvested(gi);
