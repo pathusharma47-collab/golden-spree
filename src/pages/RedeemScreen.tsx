@@ -129,11 +129,28 @@ const RedeemScreen = () => {
           >
             {m}
             <div className="text-[11px] font-normal text-muted-foreground mt-0.5">
-              Balance: {(m === "gold" ? gold : silver).toFixed(4)}g
+              Balance: {(m === "gold" ? gold22k + gold24k : silver).toFixed(4)}g
             </div>
           </button>
         ))}
       </div>
+
+      {/* Purity selector (gold only) */}
+      {metal === "gold" && (
+        <div className="mt-3 flex gap-2 p-1 rounded-lg bg-muted/40">
+          {(["22k", "24k"] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => { setPurity(p); setGrams(""); }}
+              className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${
+                purity === p ? "gold-gradient text-primary-foreground gold-glow" : "text-muted-foreground"
+              }`}
+            >
+              Gold {p.toUpperCase()} · {(p === "24k" ? gold24k : gold22k).toFixed(4)}g
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Grams input */}
       <div className="glass-card p-4 mt-4">
