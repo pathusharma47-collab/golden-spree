@@ -16,6 +16,7 @@ type Tab = "gold" | "silver" | "sip";
 const InvestScreen = () => {
   const [tab, setTab] = useState<Tab>("gold");
   const [amount, setAmount] = useState("");
+  const [purity, setPurity] = useState<"22k" | "24k">("22k");
   const [selectedPlan, setSelectedPlan] = useState<SIPPlan | null>(null);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -35,7 +36,9 @@ const InvestScreen = () => {
   }, [searchParams]);
 
   const metal = tab === "sip" ? (selectedPlan?.metal || "gold") : tab;
-  const rate = metal === "gold" ? parseFloat(prices.gold22k) : parseFloat(prices.silver);
+  const rate = metal === "gold"
+    ? (purity === "24k" ? parseFloat(prices.gold24k) : parseFloat(prices.gold22k))
+    : parseFloat(prices.silver);
   const numAmount = parseFloat(amount) || 0;
   const gst = numAmount * GST_RATE;
   const investable = numAmount - gst;
@@ -54,9 +57,9 @@ const InvestScreen = () => {
     }
     setBusy(true);
     try {
-      const ok = await deductForInvestment(numAmount, metal, grams, rate, "buy");
+      const ok = await deductForInvestment(numAmount, metal, grams, rate, "buy", purity);
       if (ok) {
-        toast.success(`Invested ₹${numAmount.toLocaleString("en-IN")} in ${metal}`, {
+        toast.success(`Invested ₹${numAmount.toLocaleString("en-IN")} in ${metal}${metal === "gold" ? ` ${purity.toUpperCase()}` : ""}`, {
           description: `You received ${grams}g · GST ₹${gst.toFixed(2)} included`,
         });
         setAmount("");
