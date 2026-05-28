@@ -18,18 +18,21 @@ const options: { type: RedeemType; icon: typeof Truck; title: string; emoji: str
 
 const RedeemScreen = () => {
   const navigate = useNavigate();
-  const { gold, silver, refresh: refreshHoldings } = useHoldings();
+  const { gold22k, gold24k, silver, refresh: refreshHoldings } = useHoldings();
   const { refresh: refreshWallet } = useWallet();
   const prices = useMetalPrices();
 
   const [type, setType] = useState<RedeemType | null>(null);
   const [metal, setMetal] = useState<"gold" | "silver">("gold");
+  const [purity, setPurity] = useState<"22k" | "24k">("22k");
   const [grams, setGrams] = useState("");
   const [addr, setAddr] = useState({ line1: "", city: "", pincode: "" });
   const [busy, setBusy] = useState(false);
 
-  const holding = metal === "gold" ? gold : silver;
-  const rate = Number(metal === "gold" ? prices.gold22k : prices.silver) || 0;
+  const holding = metal === "gold" ? (purity === "24k" ? gold24k : gold22k) : silver;
+  const rate = Number(
+    metal === "gold" ? (purity === "24k" ? prices.gold24k : prices.gold22k) : prices.silver,
+  ) || 0;
   const numGrams = Number(grams) || 0;
   const amount = useMemo(() => +(numGrams * rate).toFixed(2), [numGrams, rate]);
 
@@ -53,6 +56,7 @@ const RedeemScreen = () => {
       _grams: numGrams,
       _type: dbType,
       _address: type === "sell" ? null : addr,
+      _purity: metal === "silver" ? "silver" : purity,
     });
     setBusy(false);
     if (error) {
