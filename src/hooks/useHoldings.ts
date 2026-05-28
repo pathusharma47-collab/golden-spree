@@ -11,13 +11,17 @@ export interface Holdings {
   refresh: () => Promise<void>;
 }
 
+// Module-level cache so tab switches don't flash 0 values while refetching.
+const cache = new Map<string, { gold: number; silver: number; goldInvested: number; silverInvested: number }>();
+
 export const useHoldings = (): Holdings => {
   const { user } = useAuth();
-  const [gold, setGold] = useState(0);
-  const [silver, setSilver] = useState(0);
-  const [goldInvested, setGoldInvested] = useState(0);
-  const [silverInvested, setSilverInvested] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const cached = user ? cache.get(user.id) : undefined;
+  const [gold, setGold] = useState(cached?.gold ?? 0);
+  const [silver, setSilver] = useState(cached?.silver ?? 0);
+  const [goldInvested, setGoldInvested] = useState(cached?.goldInvested ?? 0);
+  const [silverInvested, setSilverInvested] = useState(cached?.silverInvested ?? 0);
+  const [loading, setLoading] = useState(!cached);
 
   const refresh = useCallback(async () => {
     if (!user) {
@@ -26,7 +30,7 @@ export const useHoldings = (): Holdings => {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    if (!cache.has(user.id)) setLoading(true);
     const [holdingsRes, txRes] = await Promise.all([
       supabase.from("holdings").select("metal, grams").eq("user_id", user.id),
       supabase
@@ -52,6 +56,7 @@ export const useHoldings = (): Holdings => {
     setSilver(s);
     setGoldInvested(gi);
     setSilverInvested(si);
+    cache.set(user.id, { gold: g, silver: s, goldInvested: gi, silverInvested: si });
     setLoading(false);
   }, [user]);
 
