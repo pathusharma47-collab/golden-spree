@@ -35,7 +35,7 @@ const InvestScreen = () => {
   }, [searchParams]);
 
   const metal = tab === "sip" ? (selectedPlan?.metal || "gold") : tab;
-  const rate = metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver);
+  const rate = metal === "gold" ? parseFloat(prices.gold22k) : parseFloat(prices.silver);
   const numAmount = parseFloat(amount) || 0;
   const gst = numAmount * GST_RATE;
   const investable = numAmount - gst;
@@ -85,7 +85,7 @@ const InvestScreen = () => {
     }
     setBusy(true);
     try {
-      const sipRate = plan.metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver);
+      const sipRate = plan.metal === "gold" ? parseFloat(prices.gold22k) : parseFloat(prices.silver);
       const sipGrams = ((plan.monthlyAmount - plan.monthlyAmount * GST_RATE) / sipRate).toFixed(4);
       const ok = await deductForInvestment(plan.monthlyAmount, plan.metal, sipGrams, sipRate, "sip");
       if (ok) {
