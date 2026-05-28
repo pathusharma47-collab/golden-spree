@@ -35,7 +35,7 @@ export const useHoldings = (): Holdings => {
       supabase.from("holdings").select("metal, grams").eq("user_id", user.id),
       supabase
         .from("investment_transactions")
-        .select("metal, amount_inr, type")
+        .select("metal, amount_inr, gst_amount, type")
         .eq("user_id", user.id)
         .in("type", ["buy", "sip"]),
     ]);
@@ -49,8 +49,10 @@ export const useHoldings = (): Holdings => {
     let si = 0;
     for (const row of txRes.data ?? []) {
       const amt = Number(row.amount_inr) || 0;
-      if (row.metal === "gold") gi += amt;
-      else if (row.metal === "silver") si += amt;
+      const gst = Number(row.gst_amount) || 0;
+      const net = Math.max(0, amt - gst);
+      if (row.metal === "gold") gi += net;
+      else if (row.metal === "silver") si += net;
     }
     setGold(g);
     setSilver(s);
