@@ -16,7 +16,7 @@ const LockerScreen = () => {
   const grams = isGold ? gold : silver;
   const { items: recent } = useRecentInvestments({ metal: isGold ? "gold" : "silver", limit: 5 });
   const goalGrams = isGold ? 10 : 500;
-  const rate = parseFloat(isGold ? prices.gold24k : prices.silver) || 0;
+  const rate = parseFloat(isGold ? prices.gold22k : prices.silver) || 0;
   const value = grams * rate;
   const goalValue = goalGrams * rate;
   const progress = Math.min((grams / goalGrams) * 100, 100);

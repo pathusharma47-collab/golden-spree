@@ -23,7 +23,7 @@ const SIPScreen = () => {
       toast.error("Insufficient balance", { description: "Add funds to your wallet first" });
       return;
     }
-    const rate = sip.metal === "gold" ? parseFloat(prices.gold24k) : parseFloat(prices.silver);
+    const rate = sip.metal === "gold" ? parseFloat(prices.gold22k) : parseFloat(prices.silver);
     const investable = sip.monthlyAmount - sip.monthlyAmount * GST_RATE;
     const grams = parseFloat((investable / rate).toFixed(4));
 
