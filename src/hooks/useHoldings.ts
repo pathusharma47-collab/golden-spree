@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface Holdings {
   gold: number;
   silver: number;
+  gold22k: number;
+  gold24k: number;
   goldInvested: number;
   silverInvested: number;
   loading: boolean;
@@ -12,13 +14,15 @@ export interface Holdings {
 }
 
 // Module-level cache so tab switches don't flash 0 values while refetching.
-const cache = new Map<string, { gold: number; silver: number; goldInvested: number; silverInvested: number }>();
+const cache = new Map<string, { gold: number; silver: number; gold22k: number; gold24k: number; goldInvested: number; silverInvested: number }>();
 
 export const useHoldings = (): Holdings => {
   const { user } = useAuth();
   const cached = user ? cache.get(user.id) : undefined;
   const [gold, setGold] = useState(cached?.gold ?? 0);
   const [silver, setSilver] = useState(cached?.silver ?? 0);
+  const [gold22k, setGold22k] = useState(cached?.gold22k ?? 0);
+  const [gold24k, setGold24k] = useState(cached?.gold24k ?? 0);
   const [goldInvested, setGoldInvested] = useState(cached?.goldInvested ?? 0);
   const [silverInvested, setSilverInvested] = useState(cached?.silverInvested ?? 0);
   const [loading, setLoading] = useState(!cached);
@@ -32,7 +36,7 @@ export const useHoldings = (): Holdings => {
     }
     if (!cache.has(user.id)) setLoading(true);
     const [holdingsRes, txRes] = await Promise.all([
-      supabase.from("holdings").select("metal, grams").eq("user_id", user.id),
+      supabase.from("holdings").select("metal, grams, purity").eq("user_id", user.id),
       supabase
         .from("investment_transactions")
         .select("metal, amount_inr, gst_amount, type")
@@ -41,9 +45,15 @@ export const useHoldings = (): Holdings => {
     ]);
     let g = 0;
     let s = 0;
+    let g22 = 0;
+    let g24 = 0;
     for (const row of holdingsRes.data ?? []) {
-      if (row.metal === "gold") g += Number(row.grams);
-      else if (row.metal === "silver") s += Number(row.grams);
+      const grams = Number(row.grams);
+      if (row.metal === "gold") {
+        g += grams;
+        if ((row as any).purity === "24k") g24 += grams;
+        else g22 += grams;
+      } else if (row.metal === "silver") s += grams;
     }
     let gi = 0;
     let si = 0;
@@ -59,9 +69,11 @@ export const useHoldings = (): Holdings => {
     si = Math.max(0, si);
     setGold(g);
     setSilver(s);
+    setGold22k(g22);
+    setGold24k(g24);
     setGoldInvested(gi);
     setSilverInvested(si);
-    cache.set(user.id, { gold: g, silver: s, goldInvested: gi, silverInvested: si });
+    cache.set(user.id, { gold: g, silver: s, gold22k: g22, gold24k: g24, goldInvested: gi, silverInvested: si });
     setLoading(false);
   }, [user]);
 
@@ -85,5 +97,5 @@ export const useHoldings = (): Holdings => {
     };
   }, [user, refresh]);
 
-  return { gold, silver, goldInvested, silverInvested, loading, refresh };
+  return { gold, silver, gold22k, gold24k, goldInvested, silverInvested, loading, refresh };
 };
