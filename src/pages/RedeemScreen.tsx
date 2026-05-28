@@ -71,7 +71,7 @@ const RedeemScreen = () => {
   if (!type) {
     return (
       <div className="px-5 pt-12 pb-28 max-w-lg mx-auto">
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)} className="text-muted-foreground mb-4">
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/")} className="text-muted-foreground mb-4">
           <ArrowLeft size={22} />
         </motion.button>
         <h1 className="font-display text-2xl font-bold text-foreground">Redeem</h1>
