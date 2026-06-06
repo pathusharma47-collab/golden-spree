@@ -34,6 +34,14 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
+const AGREED_KEY = "ma_policies_agreed";
+
+const markReturningDevice = () => {
+  try {
+    localStorage.setItem(AGREED_KEY, "1");
+  } catch {}
+};
+
 export const useAuth = () => useContext(AuthContext);
 
 const buildAppUser = async (supaUser: SupabaseUser): Promise<AppUser> => {
@@ -70,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const appUser = await buildAppUser(s.user);
     setUser(appUser);
+    markReturningDevice();
     // Register the device for push notifications on native platforms.
     // No-op on web.
     registerPushForUser(appUser.id).catch(() => {});
@@ -109,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    */
   const logout = async () => {
     try {
+      markReturningDevice();
       sessionStorage.removeItem("ma_unlocked");
       window.dispatchEvent(new Event("ma:lock"));
     } catch {}
@@ -117,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   /** Fully sign the user out (clears Supabase session, returns to /auth). */
   const signOut = async () => {
     const uid = user?.id;
+    markReturningDevice();
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
