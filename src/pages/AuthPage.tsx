@@ -21,16 +21,17 @@ const GoogleIcon = () => (
 const AuthPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const AGREED_KEY = "ma_policies_agreed";
+  const [alreadyAgreed] = useState<boolean>(() => {
+    try { return localStorage.getItem(AGREED_KEY) === "1"; } catch { return false; }
+  });
+  // Returning users (already agreed once on this device) land on Sign In and never see Sign Up tab.
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  const AGREED_KEY = "ma_policies_agreed";
-  const [alreadyAgreed] = useState<boolean>(() => {
-    try { return localStorage.getItem(AGREED_KEY) === "1"; } catch { return false; }
-  });
   const [agreed, setAgreed] = useState<boolean>(alreadyAgreed);
 
   const persistAgreement = () => {
@@ -140,7 +141,7 @@ const AuthPage = () => {
           <p className="text-muted-foreground text-sm mt-1">Gold & Silver Savings</p>
         </div>
 
-        {mode !== "forgot" && (
+        {mode !== "forgot" && !alreadyAgreed && (
           <div className="flex gap-2 mb-4 p-1 bg-muted/40 rounded-xl">
             <button
               type="button"

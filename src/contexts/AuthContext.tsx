@@ -103,14 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    // Clear consent, PIN and biometric flags for this device
+    // Keep consent + returning-user flag so returning users skip sign-up & agreement.
+    // Clear only session-scoped lock state.
     try {
-      localStorage.removeItem("ma_policies_agreed");
       sessionStorage.removeItem("ma_unlocked");
-      if (uid) {
-        localStorage.removeItem(`ma_pin_${uid}`);
-        localStorage.removeItem(`ma_biometric_${uid}`);
-      }
     } catch {}
   };
 
