@@ -64,6 +64,13 @@ const AppRoutes = () => {
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      sessionStorage.removeItem("ma_unlocked");
+      setUnlocked(false);
+    }
+  }, [user]);
+
   if (!splashDone || loading) return <SplashScreen />;
 
   if (user && !unlocked) {
