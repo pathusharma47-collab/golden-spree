@@ -213,7 +213,7 @@ const AuthPage = () => {
           <motion.button
             whileTap={{ scale: 0.97 }}
             type="submit"
-            disabled={busy}
+            disabled={busy || (mode !== "forgot" && !agreed)}
             className="w-full h-12 rounded-xl gold-gradient text-primary-foreground font-semibold flex items-center justify-center gap-2 gold-glow disabled:opacity-60"
           >
             {busy ? (
