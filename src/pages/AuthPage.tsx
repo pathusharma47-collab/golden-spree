@@ -22,7 +22,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const AGREED_KEY = "ma_policies_agreed";
-  const [alreadyAgreed] = useState<boolean>(() => {
+  const [alreadyAgreed, setAlreadyAgreed] = useState<boolean>(() => {
     try { return localStorage.getItem(AGREED_KEY) === "1"; } catch { return false; }
   });
   // Returning users (already agreed once on this device) land on Sign In and never see Sign Up tab.
@@ -36,6 +36,7 @@ const AuthPage = () => {
 
   const persistAgreement = () => {
     try { localStorage.setItem(AGREED_KEY, "1"); } catch {}
+    setAlreadyAgreed(true);
   };
 
   useEffect(() => {
