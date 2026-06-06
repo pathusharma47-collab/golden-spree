@@ -31,6 +31,9 @@ import DeliveryScreen from "./pages/DeliveryScreen";
 import LockerScreen from "./pages/LockerScreen";
 import NotificationsPage from "./pages/NotificationsPage";
 import BottomNav from "./components/BottomNav";
+import SplashScreen from "./components/SplashScreen";
+import PinLockScreen, { hasPin } from "./components/PinLockScreen";
+import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
@@ -51,7 +54,30 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  const [splashDone, setSplashDone] = useState(false);
+  const [unlocked, setUnlocked] = useState<boolean>(
+    () => sessionStorage.getItem("ma_unlocked") === "1",
+  );
+
+  useEffect(() => {
+    const t = setTimeout(() => setSplashDone(true), 1800);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (!splashDone || loading) return <SplashScreen />;
+
+  if (user && !unlocked) {
+    const mode = hasPin(user.id) ? "unlock" : "create";
+    return (
+      <PinLockScreen
+        mode={mode}
+        onSuccess={() => {
+          sessionStorage.setItem("ma_unlocked", "1");
+          setUnlocked(true);
+        }}
+      />
+    );
+  }
 
   return (
     <>
