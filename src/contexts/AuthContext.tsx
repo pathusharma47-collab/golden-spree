@@ -17,7 +17,10 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  /** Default action: lock the app (keeps session so PIN/biometrics can unlock). */
   logout: () => Promise<void>;
+  /** Fully sign the user out of their account; routes back to /auth. */
+  signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -27,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isAdmin: false,
   logout: async () => {},
+  signOut: async () => {},
   refreshProfile: async () => {},
 });
 
@@ -98,21 +102,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (session) await hydrate(session);
   };
 
+  /**
+   * Lock the app without ending the Supabase session. The user remains
+   * authenticated, so the PIN / biometrics screen acts as the login page
+   * on next access.
+   */
   const logout = async () => {
+    try {
+      sessionStorage.removeItem("ma_unlocked");
+      window.dispatchEvent(new Event("ma:lock"));
+    } catch {}
+  };
+
+  /** Fully sign the user out (clears Supabase session, returns to /auth). */
+  const signOut = async () => {
     const uid = user?.id;
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    // Keep consent + returning-user flag so returning users skip sign-up & agreement.
-    // Clear only session-scoped lock state.
     try {
       sessionStorage.removeItem("ma_unlocked");
+      // Keep consent + PIN + biometric flags so the same device can re-unlock
+      // quickly if the user signs back in.
+      void uid;
     } catch {}
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, isAdmin: user?.role === "admin", logout, refreshProfile }}
+      value={{ user, session, loading, isAdmin: user?.role === "admin", logout, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

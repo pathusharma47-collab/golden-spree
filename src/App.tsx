@@ -71,6 +71,14 @@ const AppRoutes = () => {
     }
   }, [user]);
 
+  // Lock-only logout: AuthContext dispatches "ma:lock" → drop to PIN screen
+  // without ending the Supabase session.
+  useEffect(() => {
+    const onLock = () => setUnlocked(false);
+    window.addEventListener("ma:lock", onLock);
+    return () => window.removeEventListener("ma:lock", onLock);
+  }, []);
+
   if (!splashDone || loading) return <SplashScreen />;
 
   if (user && !unlocked) {
