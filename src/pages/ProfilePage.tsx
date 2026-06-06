@@ -6,10 +6,15 @@ import { useHoldings } from "@/hooks/useHoldings";
 import { formatINR, formatGrams } from "@/lib/format";
 
 const ProfilePage = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { gold, silver, goldInvested, silverInvested } = useHoldings();
   const totalInvested = goldInvested + silverInvested;
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
 
   return (
     <div className="min-h-screen pb-28 px-4 pt-6">
@@ -133,7 +138,7 @@ const ProfilePage = () => {
 
         <p className="text-xs font-medium text-muted-foreground px-1 mb-2 mt-4">Settings</p>
         <button
-          onClick={async () => { await logout(); }}
+          onClick={handleLogout}
           className="w-full glass-card p-4 flex items-center gap-3 text-destructive active:scale-[0.98] transition-transform"
         >
           <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
