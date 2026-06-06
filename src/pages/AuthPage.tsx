@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 import logo from "@/assets/logo.jpg";
 
 const GoogleIcon = () => (
@@ -26,6 +27,7 @@ const AuthPage = () => {
   const [displayName, setDisplayName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) navigate("/", { replace: true });
@@ -33,6 +35,10 @@ const AuthPage = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreed) {
+      toast({ title: "Please accept the policies", description: "You must agree to the Terms, Privacy and Refund policies to continue.", variant: "destructive" });
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
@@ -45,6 +51,10 @@ const AuthPage = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreed) {
+      toast({ title: "Please accept the policies", description: "You must agree to the Terms, Privacy and Refund policies to continue.", variant: "destructive" });
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -82,6 +92,10 @@ const AuthPage = () => {
   };
 
   const handleGoogle = async () => {
+    if (!agreed) {
+      toast({ title: "Please accept the policies", description: "You must agree to the Terms, Privacy and Refund policies to continue.", variant: "destructive" });
+      return;
+    }
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
