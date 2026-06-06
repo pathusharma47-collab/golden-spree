@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Delete, LogOut, Fingerprint } from "lucide-react";
+import { Delete, LogOut, Fingerprint, ScanFace } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import {
+  useBiometricAuth,
+  isBiometricEnabled,
+  setBiometricEnabled,
+} from "@/hooks/useBiometricAuth";
 import logo from "@/assets/logo.jpg";
 import BrandWave from "./BrandWave";
 
@@ -26,6 +31,11 @@ const PinLockScreen = ({ mode: initialMode, onSuccess }: Props) => {
   const [pin, setPinValue] = useState("");
   const [firstPin, setFirstPin] = useState("");
   const [shake, setShake] = useState(false);
+  const { isAvailable: bioAvailable, kind: bioKind, authenticate: bioAuth } = useBiometricAuth();
+  const autoTriedRef = useRef(false);
+  const bioEnabled = !!user && isBiometricEnabled(user.id);
+  const BioIcon = bioKind === "face" ? ScanFace : Fingerprint;
+  const bioLabel = bioKind === "face" ? "Face ID" : "Touch ID";
 
   const title =
     mode === "unlock" ? "Enter your PIN" : mode === "set" ? "Create a 4-digit PIN" : "Confirm your PIN";
@@ -45,7 +55,7 @@ const PinLockScreen = ({ mode: initialMode, onSuccess }: Props) => {
 
   const handleDelete = () => setPinValue((p) => p.slice(0, -1));
 
-  const evaluate = (entered: string) => {
+  const evaluate = async (entered: string) => {
     if (!user) return;
     if (mode === "unlock") {
       const stored = localStorage.getItem(pinKey(user.id));
@@ -62,6 +72,13 @@ const PinLockScreen = ({ mode: initialMode, onSuccess }: Props) => {
       if (entered === firstPin) {
         setPin(user.id, entered);
         toast({ title: "PIN set ✨", description: "You can now unlock the app with your PIN." });
+        if (bioAvailable) {
+          const ok = await bioAuth("Enable biometric unlock");
+          if (ok) {
+            setBiometricEnabled(user.id, true);
+            toast({ title: `${bioLabel} enabled`, description: "You can now unlock with biometrics." });
+          }
+        }
         onSuccess();
       } else {
         triggerError("PINs don't match");
@@ -89,6 +106,34 @@ const PinLockScreen = ({ mode: initialMode, onSuccess }: Props) => {
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin, mode, firstPin]);
+
+  // Auto-prompt biometrics when arriving on the unlock screen
+  useEffect(() => {
+    if (autoTriedRef.current) return;
+    if (mode !== "unlock" || !user || !bioAvailable || !bioEnabled) return;
+    autoTriedRef.current = true;
+    (async () => {
+      const ok = await bioAuth("Unlock Maheshwari Alankar");
+      if (ok) onSuccess();
+    })();
+  }, [mode, user, bioAvailable, bioEnabled, bioAuth, onSuccess]);
+
+  const tryBiometric = async () => {
+    if (!user || !bioAvailable) {
+      toast({ title: "Biometrics not available on this device" });
+      return;
+    }
+    if (mode !== "unlock") return;
+    if (!bioEnabled) {
+      toast({
+        title: "Enable biometrics first",
+        description: "Unlock with your PIN once, then we'll offer to enable biometrics.",
+      });
+      return;
+    }
+    const ok = await bioAuth("Unlock Maheshwari Alankar");
+    if (ok) onSuccess();
+  };
 
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"] as const;
 
@@ -153,14 +198,17 @@ const PinLockScreen = ({ mode: initialMode, onSuccess }: Props) => {
         >
           {keys.map((k, idx) => {
             if (k === "") {
+              const showBio = mode === "unlock" && bioAvailable && bioEnabled;
               return (
                 <button
                   key={idx}
-                  aria-label="Biometric (coming soon)"
-                  className="h-14 rounded-xl flex items-center justify-center text-muted-foreground active:scale-95"
-                  onClick={() => toast({ title: "Biometric unlock coming soon" })}
+                  aria-label={showBio ? `Unlock with ${bioLabel}` : "Biometric unlock"}
+                  className={`h-14 rounded-xl flex items-center justify-center active:scale-95 transition-colors ${
+                    showBio ? "text-primary hover:bg-muted/40" : "text-muted-foreground"
+                  }`}
+                  onClick={tryBiometric}
                 >
-                  <Fingerprint size={22} />
+                  <BioIcon size={22} />
                 </button>
               );
             }
