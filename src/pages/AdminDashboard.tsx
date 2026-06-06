@@ -63,6 +63,7 @@ const AdminDashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   const [prices, setPrices] = useState<PriceData>(DEFAULT_PRICES);
   const [pricesRowId, setPricesRowId] = useState<string | null>(null);
@@ -358,6 +359,13 @@ const AdminDashboard = () => {
     setSavingEdit(false);
   };
 
+  const handleAdminLogout = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
+
   return (
     <div className="min-h-screen pb-28 px-4 pt-6">
       {/* Header */}
@@ -378,10 +386,11 @@ const AdminDashboard = () => {
         <div className="flex items-center gap-2">
           <NotificationBell />
           <button
-            onClick={async () => { await signOut(); navigate("/auth", { replace: true }); }}
-            className="text-xs text-destructive font-medium px-3 py-1.5 rounded-lg border border-destructive/30"
+            onClick={handleAdminLogout}
+            disabled={signingOut}
+            className="text-xs text-destructive font-medium px-3 py-1.5 rounded-lg border border-destructive/30 disabled:opacity-60"
           >
-            Logout
+            {signingOut ? "Logging out..." : "Logout"}
           </button>
         </div>
       </motion.div>
