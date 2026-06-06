@@ -81,18 +81,8 @@ const AppRoutes = () => {
 
   if (!splashDone || loading) return <SplashScreen />;
 
-  if (user && !unlocked) {
-    const mode = hasPin(user.id) ? "unlock" : "create";
-    return (
-      <PinLockScreen
-        mode={mode}
-        onSuccess={() => {
-          sessionStorage.setItem("ma_unlocked", "1");
-          setUnlocked(true);
-        }}
-      />
-    );
-  }
+  const showLock = !!user && !unlocked;
+  const lockMode = user && hasPin(user.id) ? "unlock" : "create";
 
   return (
     <>
@@ -124,7 +114,16 @@ const AppRoutes = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>
-      {user && <BottomNav />}
+      {user && !showLock && <BottomNav />}
+      {showLock && (
+        <PinLockScreen
+          mode={lockMode}
+          onSuccess={() => {
+            sessionStorage.setItem("ma_unlocked", "1");
+            setUnlocked(true);
+          }}
+        />
+      )}
     </>
   );
 };
