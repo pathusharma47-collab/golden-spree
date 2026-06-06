@@ -378,7 +378,7 @@ const AdminDashboard = () => {
         <div className="flex items-center gap-2">
           <NotificationBell />
           <button
-            onClick={async () => { await logout(); navigate("/auth"); }}
+            onClick={async () => { await logout(); }}
             className="text-xs text-destructive font-medium px-3 py-1.5 rounded-lg border border-destructive/30"
           >
             Logout
