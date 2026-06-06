@@ -26,7 +26,7 @@ interface Props {
 }
 
 const PinLockScreen = ({ mode: initialMode, onSuccess }: Props) => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const [mode, setMode] = useState<Mode>(initialMode === "create" ? "set" : "unlock");
   const [pin, setPinValue] = useState("");
   const [firstPin, setFirstPin] = useState("");
@@ -151,11 +151,12 @@ const PinLockScreen = ({ mode: initialMode, onSuccess }: Props) => {
           {mode === "unlock" ? "Sign In" : "Set PIN"}
         </span>
         <button
-          onClick={logout}
-          className="text-muted-foreground active:scale-95"
-          aria-label="Sign out"
+          onClick={signOut}
+          className="text-xs text-muted-foreground active:scale-95 flex items-center gap-1"
+          aria-label="Switch account"
         >
-          <LogOut size={18} />
+          <LogOut size={14} />
+          Switch
         </button>
       </header>
 
