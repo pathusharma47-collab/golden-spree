@@ -210,6 +210,24 @@ const AuthPage = () => {
             </div>
           )}
 
+          {mode !== "forgot" && (
+            <div className="flex items-start gap-2 pt-1">
+              <Checkbox
+                id="agree-policies"
+                checked={agreed}
+                onCheckedChange={(v) => setAgreed(v === true)}
+                className="mt-0.5"
+              />
+              <label htmlFor="agree-policies" className="text-xs text-muted-foreground leading-snug cursor-pointer">
+                I agree to the{" "}
+                <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms & Conditions</Link>,{" "}
+                <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>{" "}
+                and{" "}
+                <Link to="/refund" target="_blank" className="text-primary hover:underline">Refund Policy</Link>.
+              </label>
+            </div>
+          )}
+
           <motion.button
             whileTap={{ scale: 0.97 }}
             type="submit"
