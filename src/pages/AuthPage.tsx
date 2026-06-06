@@ -27,7 +27,15 @@ const AuthPage = () => {
   const [displayName, setDisplayName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  const AGREED_KEY = "ma_policies_agreed";
+  const [alreadyAgreed] = useState<boolean>(() => {
+    try { return localStorage.getItem(AGREED_KEY) === "1"; } catch { return false; }
+  });
+  const [agreed, setAgreed] = useState<boolean>(alreadyAgreed);
+
+  const persistAgreement = () => {
+    try { localStorage.setItem(AGREED_KEY, "1"); } catch {}
+  };
 
   useEffect(() => {
     if (!authLoading && user) navigate("/", { replace: true });
@@ -39,6 +47,7 @@ const AuthPage = () => {
       toast({ title: "Please accept the policies", description: "You must agree to the Terms, Privacy and Refund policies to continue.", variant: "destructive" });
       return;
     }
+    persistAgreement();
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
@@ -55,6 +64,7 @@ const AuthPage = () => {
       toast({ title: "Please accept the policies", description: "You must agree to the Terms, Privacy and Refund policies to continue.", variant: "destructive" });
       return;
     }
+    persistAgreement();
     setBusy(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -96,6 +106,7 @@ const AuthPage = () => {
       toast({ title: "Please accept the policies", description: "You must agree to the Terms, Privacy and Refund policies to continue.", variant: "destructive" });
       return;
     }
+    persistAgreement();
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
@@ -210,7 +221,7 @@ const AuthPage = () => {
             </div>
           )}
 
-          {mode !== "forgot" && (
+          {mode !== "forgot" && !alreadyAgreed && (
             <div className="flex items-start gap-2 pt-1">
               <Checkbox
                 id="agree-policies"
