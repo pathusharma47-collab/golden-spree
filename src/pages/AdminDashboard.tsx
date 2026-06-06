@@ -60,7 +60,7 @@ const DEFAULT_PRICES: PriceData = {
 };
 
 const AdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -378,7 +378,7 @@ const AdminDashboard = () => {
         <div className="flex items-center gap-2">
           <NotificationBell />
           <button
-            onClick={async () => { await logout(); }}
+            onClick={async () => { await signOut(); navigate("/auth", { replace: true }); }}
             className="text-xs text-destructive font-medium px-3 py-1.5 rounded-lg border border-destructive/30"
           >
             Logout
