@@ -60,7 +60,7 @@ const DEFAULT_PRICES: PriceData = {
 };
 
 const AdminDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -362,8 +362,9 @@ const AdminDashboard = () => {
   const handleAdminLogout = async () => {
     if (signingOut) return;
     setSigningOut(true);
-    await signOut();
-    navigate("/auth", { replace: true });
+    // Lock-only logout: keeps the session so the admin returns to the PIN
+    // unlock screen instead of the email sign-in page.
+    await logout();
   };
 
   return (
