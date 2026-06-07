@@ -6,14 +6,15 @@ import { useHoldings } from "@/hooks/useHoldings";
 import { formatINR, formatGrams } from "@/lib/format";
 
 const ProfilePage = () => {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { gold, silver, goldInvested, silverInvested } = useHoldings();
   const totalInvested = goldInvested + silverInvested;
 
   const handleLogout = async () => {
-    await signOut();
-    navigate("/auth", { replace: true });
+    // Lock-only logout: keeps the session so returning users land on the PIN
+    // unlock screen instead of the email sign-in page.
+    await logout();
   };
 
   return (
